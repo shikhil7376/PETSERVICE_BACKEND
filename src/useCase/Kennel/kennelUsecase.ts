@@ -7,7 +7,7 @@ import JWTTOKEN from "../../infrastructure/services/generateToken"
 import VerifiedkennelRepository from "../../infrastructure/repository/Kennel/verifiedKennelRepository"
 import Cloudinary from "../../infrastructure/services/cloudinary"
 import Stripe from "stripe"
-
+import { savebooking } from "../interface/Kennel/VerifiedKennelRepo"
 
 class KennelUseCase{
     private KennelRepository
@@ -18,6 +18,7 @@ class KennelUseCase{
     private JwtToken
     private verifiedkennelRepository
     private Cloudinary
+    private endpointSecret:string;
 
     constructor(
         KennalRepository:KennelRepository,
@@ -28,6 +29,7 @@ class KennelUseCase{
         JwtToken:JWTTOKEN,
         verfiedKennelRepository:VerifiedkennelRepository,
         cloudinary:Cloudinary,
+
     ){
      this.KennelRepository = KennalRepository
      this.GenerateOtp = GenerateOtp
@@ -37,7 +39,8 @@ class KennelUseCase{
      this.JwtToken = JwtToken
      this.verifiedkennelRepository =  verfiedKennelRepository
      this.Cloudinary = cloudinary
- 
+     this.endpointSecret = "whsec_68658f463e9c31543e0c6b255ecc0e44dc43f11217969ddcf0595ca8a7363bd8";
+
     }
   
 
@@ -285,12 +288,29 @@ async addCage(data:any,filepath:string[]){
  }
 
  async booking(details:any,userid:string,fromdate:string,todate:string,totalAmount:number,totalDays:Number){
+
+    
+    
       let amount:number = totalAmount
+
       const stripeKey = process.env.STRIPE_KEY;
       if (!stripeKey) {
           throw new Error('Stripe key is not defined');
       }
       const stripe = new Stripe(stripeKey);
+      const customer = await stripe.customers.create({
+        metadata:{
+            userId: userid,
+            fromDate: fromdate,
+            toDate: todate,
+            totalAmount: amount.toString(),
+            totalDays: totalDays.toString(),
+            kennelName:details.kennelname,
+            cageid:details._id,
+            ownerid:details.ownerId,
+
+        }
+      })
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
         line_items: [
@@ -304,26 +324,22 @@ async addCage(data:any,filepath:string[]){
             },
             quantity: 1,
           },
+          
         ],
+        customer:customer.id,
         mode: "payment",
-        success_url: `http://localhost:5173/orders`,
+        success_url: `http://localhost:5173/success`,
         cancel_url: "http://localhost:5173/company",
         // customer_email: email,
          billing_address_collection: "auto"
       });
-
-      
-      
-
-    const bookinginfo = await this.verifiedkennelRepository.savebooking(details,userid,fromdate,todate,totalAmount,totalDays)
-    if(bookinginfo){
         return {
             status:200,
             message:session.id
         }
     }
   
- }
+ 
 
  async getOwnersCage(Id:string,page:number,limit:number,searchTerm:string){
     const data = await this.verifiedkennelRepository.getownerscages(Id,page,limit,searchTerm)
@@ -450,6 +466,71 @@ async addCage(data:any,filepath:string[]){
         }
     }
  }
+
+ async handleEvent(sig: string, body: any) {
+    const stripeKey = process.env.STRIPE_KEY;
+    if (!stripeKey) {
+        throw new Error('Stripe key is not defined');
+    }
+
+    const stripe = new Stripe(stripeKey);
+    let data;
+    let eventType;
+    let event;
+    if (!this.endpointSecret) {
+      
+        try {
+            event = stripe.webhooks.constructEvent(body, sig, this.endpointSecret);
+            data = event.data.object;
+            eventType = event.type;
+        } catch (error) {
+            console.error('Webhook error:');
+            return; // Exit early if webhook event construction fails
+        }
+    } else {
+
+        if(body.type== "checkout.session.completed"){
+            let data = body.data.object
+            const customerResponse = await stripe.customers.retrieve(data.customer);
+     
+             if ('deleted' in customerResponse && customerResponse.deleted) {
+             console.log('Customer has been deleted.');
+            } else {
+             const metadata = customerResponse.metadata;
+             const data:savebooking = {
+                 cageid:metadata.cageid,
+                 fromDate:metadata.fromDate,
+                 toDate:metadata.toDate,
+                 kennelName:metadata.kennelName,
+                 ownerid:metadata.ownerid,
+                 totalAmount:parseInt(metadata.totalAmount),
+                 totalDays:parseInt(metadata.totalDays),
+                 userId:metadata.userId,
+             }
+     
+             
+             const bookinginfo = await this.verifiedkennelRepository.savebooking(data)
+             if(bookinginfo){
+               return{
+                 status:200,
+                 message:'Booking has been saved.'
+               }
+             }else{
+                 return{
+                     status:400,
+                     message:'failed to save booking'
+                 }
+             }
+     }
+            
+        }
+        
+        
+   
+    }
+
+    
+}
 
 }
 

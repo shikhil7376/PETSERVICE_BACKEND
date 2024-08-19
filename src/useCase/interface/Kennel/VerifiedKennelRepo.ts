@@ -9,7 +9,7 @@ interface verifiedKennelOwnerRepo{
    savecage(data:cages):Promise<cages|null>
    getCages(): Promise<cages[] | null>;
    getSingleCage(id:string):Promise<cages|null>
-   savebooking(details:cages,userid:string,fromdate:string,todate:string,totalAmount:Number,totaldays:Number,transactionId:string):Promise<booking|null>
+   savebooking(data:savebooking):Promise<boolean|null>
    getownerscages(id:string,page:number,limit:number,searchTerm:string):Promise<{cage:{}[],total:number}>
    getCageById(id:string):Promise<cages|null>
    updatecage(id:string,data:cages):Promise<cages|null>
@@ -17,6 +17,17 @@ interface verifiedKennelOwnerRepo{
    updateProfile(id:string,data:VerifiedKennelOwner):Promise<VerifiedKennelOwner|null>
    getbookings(id:string):Promise<booking[]|null>
    cancelBooking(bookingid:string,cageid:string):Promise<void|null>
+}
+
+ export interface savebooking{
+   cageid:string,
+   fromDate:string
+   kennelName:string,
+   ownerid:string,
+   toDate:string,
+   totalAmount:number,
+   totalDays:number,
+   userId:string
 }
 
 export default verifiedKennelOwnerRepo

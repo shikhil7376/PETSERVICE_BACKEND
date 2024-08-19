@@ -47,4 +47,6 @@ route.post('/edit-cage',upload.array('editimages',3),(req,res,next)=>   kennelco
 route.post('/edit-profile',upload.single('ownerimage'),(req,res,next)=> kennelcontroller.editProfile(req,res,next))
 route.post('/get-bookings',(req,res,next)=>kennelcontroller.getBookings(req,res,next))
 route.post('/cancel-booking',(req,res,next)=>kennelcontroller.cancelBooking(req,res,next))
+route.post('/webhook', express.raw({ type: 'application/json' }), (req, res, next) => kennelcontroller.handleWebhook(req, res, next));
+
 export default route 
