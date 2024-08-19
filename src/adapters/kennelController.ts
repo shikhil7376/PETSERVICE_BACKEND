@@ -137,7 +137,7 @@ async booking(req:Request,res:Response,next:NextFunction){
          totalDays
       }
       
-        const response = await this.kennelusecase.booking(details,userid,fromdate,todate,totalAmount,totalDays)
+        const response = await this.kennelusecase.booking(details,userid,fromdate,todate,totalAmount,totalDays)  
          if(response){
             res.status(response.status).json(response.message)
          }
@@ -221,8 +221,6 @@ async getBookings(req:Request,res:Response,next:NextFunction){
     try {
       const{userid} = req.body
        const response = await this.kennelusecase.getbookings(userid)
-       console.log();
-       
        return res.status(response.status).json(response.data)
     } catch (error) {
         next(error)
@@ -239,6 +237,23 @@ async cancelBooking(req:Request,res:Response,next:NextFunction){
     }
 
 }
+
+
+async handleWebhook(req:Request,res:Response,next:NextFunction){
+   try {
+  
+    
+    const sig: string | string[] | undefined = req.headers['stripe-signature'];
+    if (!sig || Array.isArray(sig)) {
+        return res.status(400).send("Invalid Stripe signature");
+    }
+    const response = await this.kennelusecase.handleEvent(sig,req.body)
+   } catch (error) {
+    
+   }
+}
+
+
 }
 
 

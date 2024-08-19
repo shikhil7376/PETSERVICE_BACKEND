@@ -5,7 +5,7 @@ import cages from "../../../domain/cages";
 import Cage from "../../database/cagesModel";
 import booking from "../../../domain/Booking";
 import Booking from "../../database/bookingModel";
-
+import { savebooking } from "../../../useCase/interface/Kennel/VerifiedKennelRepo";
 
 class VerifiedkennelRepository implements verifiedKennelOwnerRepo{
    async save(kennelOwner: any): Promise<VerifiedKennelOwner> {
@@ -38,25 +38,24 @@ async getSingleCage(id: string): Promise<cages | null> {
     return cage
 }
 
-async savebooking(details: cages,userid:string, fromdate: string, todate: string, totalAmount: Number, totaldays: Number): Promise<booking | null> {
-
-     const newbooking = new Booking({
-        kennelname:details.kennelname,
-        cageid:details._id,
-        userid,
-        fromdate,
-        todate,
-        totalamount:totalAmount,
-        totaldays,
-        ownerid:details.ownerId,
+async savebooking(data: savebooking): Promise<boolean | null> {
+    const newbooking = new Booking({
+        kennelname:data.kennelName,
+        cageid:data.cageid,
+        userid:data.userId,
+        fromdate:data.fromDate,
+        todate:data.toDate,
+        totalamount:data.totalAmount,
+        totaldays:data.totalDays,
+        ownerid:data.ownerid,
         transactionId:'1234'
      })
      const booking = await newbooking.save()
-     const cagetemp = await Cage.findOne({_id:details._id})
-     
-     cagetemp?.currentBookings.push({bookingid:booking._id as string,fromdate:fromdate,todate:todate,userid:userid,status:booking.status})
+     const cagetemp = await Cage.findOne({_id:data.cageid})
+     cagetemp?.currentBookings.push({bookingid:booking._id as string,fromdate:data.fromDate,todate:data.toDate,userid:data.userId,status:booking.status})
      await cagetemp?.save();
-     return booking
+     return true
+
 }
 
 async getownerscages(id: string, page: number, limit: number, searchTerm: string): Promise<{ cage: {}[]; total: number; }> {
