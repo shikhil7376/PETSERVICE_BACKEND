@@ -1,5 +1,6 @@
 import { Request,Response,NextFunction } from "express";
 import KennelUseCase from "../useCase/Kennel/kennelUsecase";
+import { UserDetails } from "../domain/user";
 
 class kennelController{
     private kennelusecase
@@ -10,14 +11,10 @@ class kennelController{
    async signUp(req:Request,res:Response,next:NextFunction){
     try {
         const {name,email,password,phone} = req.body
+        let data:UserDetails = { name, email, password, phone };
         const verifyKennel = await this.kennelusecase.checkExists(email)
         if(verifyKennel.data.status == true){
-            const sendOtp = await this.kennelusecase.signup(
-               name,
-               email,
-               password,
-               phone
-            )
+            const sendOtp = await this.kennelusecase.signup(data)
             return res.status(sendOtp.status).json(sendOtp.data)
         }else{
             return res.status(verifyKennel.status).json(verifyKennel.data)
@@ -33,8 +30,10 @@ class kennelController{
             let verify = await this.kennelusecase.verifyOtp(email,otp)
             if(verify.status ==400){
                 return res.status(verify.status).json({message:verify.message})
-            }else if(verify.status ==200){
-                let save = await this.kennelusecase.verifyKennelOwner(verify.data)
+            }
+             if(verify.status ==200){
+                console.log('verify.data',verify.data);
+                let save = await this.kennelusecase.verifyKennelOwner(verify.data as UserDetails)
                 if(save){
                     return res.status(save.status).json(save)
                 }
@@ -57,12 +56,8 @@ class kennelController{
 async resendOtp(req:Request,res:Response,next:NextFunction){
     try { 
      const {name,email,password,phone} = req.body
-     const resendotp = await this.kennelusecase.resendOtp(
-         name,
-         email,
-         password,
-         phone
-     )
+     let data:UserDetails = { name, email, password, phone };
+     const resendotp = await this.kennelusecase.resendOtp(data)
        if(resendotp.status==200){
           res.status(resendotp.status).json(resendotp.data.message)
        }
@@ -126,7 +121,10 @@ async viewDetails(req:Request,res:Response,next:NextFunction){
 
 async booking(req:Request,res:Response,next:NextFunction){
     try {           
+        
        const{details,userid,email,fromdate,todate,totalAmount,totalDays} = req.body
+       console.log('details',details);
+       
       const paymentData ={
          details,
          userid,

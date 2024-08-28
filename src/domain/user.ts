@@ -1,4 +1,4 @@
-interface User{
+ export interface User{
     _id:string,
     name:string,
     email:string,
@@ -7,7 +7,10 @@ interface User{
     isBlocked:boolean,
     isAdmin:boolean,
     isGoogle:boolean,
-    image:string
+    image:string,
+    otp:number,
 }
 
-export default User 
+ export type OtpDetails = Omit<User, '_id' | 'isBlocked' | 'isAdmin' | 'isGoogle' | 'image'>;
+ export type UserDetails = Pick<User, 'name' | 'email' | 'password' | 'phone'>;
+

@@ -17,7 +17,8 @@ class adminUseCase{
                 data:data.users,
                 total:data.total,
                 page,
-                limit
+                limit,
+                message:'fetch users succesfully'
             }
         }else{
             return {
@@ -76,7 +77,8 @@ class adminUseCase{
                 data:data.users,
                 total:data.total,
                 page,
-                limit
+                limit,
+                message:'fetch kennel requests succesfully'
             }
         }else{
             return {
