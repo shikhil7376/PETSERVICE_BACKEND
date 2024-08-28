@@ -11,12 +11,8 @@ class adminController{
              const page = parseInt(req.query.page as string)|| 1
              const limit = parseInt(req.query.limit as string) || 10
              const searchTerm = req.query.search as string || ''
-            const users = await this.AdminUseCase.getUsers(page,limit,searchTerm)
-            if(users.status==200){
-                return res.status(users.status).json(users)
-            }else{
-                return res.status(users.status).json(users.message)
-            }
+             const users = await this.AdminUseCase.getUsers(page,limit,searchTerm)
+             return res.status(users.status).json(users)
          } catch (error) {
             next(error)
          }
@@ -24,10 +20,8 @@ class adminController{
 
      async blockUser(req:Request,res:Response,next:NextFunction) {
         try {
-            const result = await this.AdminUseCase.blockUser(req.body.userId)
-            if(result.status ==200){
-                return res.status(result.status).json(result.data.message)
-            }
+         const result = await this.AdminUseCase.blockUser(req.body.userId)
+          return res.status(result.status).json(result.data.message)
         } catch (error) {
             next(error)
         }
@@ -36,11 +30,7 @@ class adminController{
      async UnBlockUser(req:Request,res:Response,next:NextFunction){
         try {
             const result = await this.AdminUseCase.unBlockUser(req.body.userId)
-            if(result.status ==200){
-                return res.status(result.status).json(result.data.message)
-            }else{
-                return res.status(result.status).json(result.data.message)
-            }
+            return res.status(result.status).json(result.data.message)
         } catch (error) {
             next(error)
         }
@@ -52,14 +42,10 @@ class adminController{
             const limit = parseInt(req.query.limit as string) || 10
             const searchTerm = req.query.search as string || ''
             const requests = await this.AdminUseCase.getRequests(page,limit,searchTerm)
-            if(requests.status ==200){
-                return res.status(requests.status).json(requests)
-            }else{
-                return res.status(requests.status).json(requests.message)
-            }
-        } catch (error) {
+            return res.status(requests.status).json(requests)
+           } catch (error) {
             next(error)
-        }
+           }
      }
   async approveKennel(req:Request,res:Response,next:NextFunction){
     try {  
@@ -76,7 +62,6 @@ class adminController{
   }
 async rejectKennel(req:Request,res:Response,next:NextFunction){
   try {   
-
       
       const reject = await this.AdminUseCase.rejectKennel(req.body.reqId)
     if(reject.status ==200){
@@ -93,22 +78,16 @@ async getVerifiedKennelOwner(req:Request,res:Response,next:NextFunction){
         const limit = parseInt(req.query.limit as string) || 10
         const searchTerm = req.query.search as string || ''
         const requests = await this.AdminUseCase.getVerifiedKennelOwner(page,limit,searchTerm)
-        if(requests.status ==200){
-            return res.status(requests.status).json(requests)
-        }else{
-            return res.status(requests.status).json(requests.message)
-        }
-    } catch (error) {
-        next(error)
-    }
+        return res.status(requests.status).json(requests)
+       } catch (error) {
+         next(error)
+       }
 }
 
 async blockkennelOwner(req:Request,res:Response,next:NextFunction) {
     try {
         const result = await this.AdminUseCase.blockkennelowner(req.body.userId)
-        if(result.status ==200){
-            return res.status(result.status).json(result.data.message)
-        }
+        return res.status(result.status).json(result.data.message)
     } catch (error) {
         next(error)
     }
@@ -117,9 +96,7 @@ async blockkennelOwner(req:Request,res:Response,next:NextFunction) {
  async unblockkennelOwner(req:Request,res:Response,next:NextFunction) {
     try {
         const result = await this.AdminUseCase.unblockkennelowner(req.body.userId)
-        if(result.status ==200){
-            return res.status(result.status).json(result.data.message)
-        }
+        return res.status(result.status).json(result.data.message)
     } catch (error) {
         next(error)
     }
