@@ -32,7 +32,7 @@ const bookingSchema:Schema<booking&Document> = new Schema({
     required:true
    },
    transactionId:{
-    type:String,
+    type:String, 
     required:true
    }, 
    status:{

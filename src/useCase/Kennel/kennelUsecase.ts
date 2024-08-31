@@ -583,6 +583,26 @@ class KennelUseCase {
       }
     }
   }
+
+  async getAllBookings(){
+    const response = await this.verifiedkennelRepository.getAllBookingWithUserDetails()
+    if(response){
+      return {
+        status:200,
+        data:{
+          data:response,
+          message:'get bookings succesfully'
+        }
+      }
+    }else{
+      return {
+        status:400,
+        data:{
+          message:'getbookings failed'
+        }
+      }
+    }
+  }
 }
 
 export default KennelUseCase;

@@ -33,7 +33,11 @@ const useSchema:Schema = new Schema<User|Document>(
         },
         image:{
             type:String
-        }
+        },
+        wallet: {
+            type: Number,
+            default: 0,
+          },
        
     }
 )

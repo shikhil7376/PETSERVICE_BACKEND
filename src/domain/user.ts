@@ -9,8 +9,9 @@
     isGoogle:boolean,
     image:string,
     otp:number,
+    wallet:number
 }
 
- export type OtpDetails = Omit<User, '_id' | 'isBlocked' | 'isAdmin' | 'isGoogle' | 'image'>;
+ export type OtpDetails = Omit<User, '_id' | 'isBlocked' | 'isAdmin' | 'isGoogle' | 'image'|'wallet'>;
  export type UserDetails = Pick<User, 'name' | 'email' | 'password' | 'phone'>;
 

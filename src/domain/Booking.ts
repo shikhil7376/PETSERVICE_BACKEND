@@ -11,7 +11,9 @@ interface booking{
     transactionId:string,
     status:string,
     ownerid:string,
-    cageImage: string;
+    cageImage: string,
+    _id?:string,
+    phone?:string,
 }
 
 export default booking

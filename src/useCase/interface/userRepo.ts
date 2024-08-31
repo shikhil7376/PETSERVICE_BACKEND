@@ -1,6 +1,9 @@
 import Otp from "../../domain/otp";
 import { User } from "../../domain/user";
 import { OtpDetails } from "../../domain/user";
+import { postdetails } from "../../domain/dogPost";
+import { commentDetails } from "../../domain/Comment";
+import { getComments } from "../../domain/Comment";
 
 interface UserRepo{
     findByEmail(email:string):Promise<User|null>
@@ -15,7 +18,11 @@ interface UserRepo{
     getProfile(id:string):Promise<User|null>
     findById(id:string):Promise<User|null>
     updateProfile(id:string,data:User):Promise<User|null>
-
+    addPost(data:postdetails):Promise<boolean>
+    getAllPost():Promise<postdetails[]>
+    likePost(userId:string,postId:string):Promise<boolean>
+    commentPost(data:commentDetails):Promise<boolean>
+    getAllComments(postId:string):Promise<getComments[]>
 }
 
 

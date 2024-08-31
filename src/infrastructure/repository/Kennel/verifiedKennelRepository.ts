@@ -6,6 +6,7 @@ import Cage from "../../database/cagesModel";
 import booking from "../../../domain/Booking";
 import Booking from "../../database/bookingModel";
 import { savebooking } from "../../../useCase/interface/Kennel/VerifiedKennelRepo";
+import UserModel from "../../database/userModel";
 
 class VerifiedkennelRepository implements verifiedKennelOwnerRepo{
    async save(kennelOwner: any): Promise<VerifiedKennelOwner> {
@@ -108,17 +109,73 @@ async getbookings(id: string): Promise<booking[] | null> {
     return bookings
 }   
 
-async cancelBooking(bookingid: string, cageid: string): Promise<void | null> {
-    const booking = await Booking.findById({_id:bookingid})
-    if(booking){
-        booking.status = 'cancelled'
-        await booking.save()
-        const cage = await Cage.findById({_id:cageid})
-        if(cage){
-            cage.currentBookings = cage.currentBookings.filter(booking => booking.bookingid!== bookingid)
-            await cage.save()
+async cancelBooking(bookingid: string, cageid: string): Promise<boolean> {
+    const booking = await Booking.findById({ _id: bookingid });
+    if (booking) {
+        booking.status = 'cancelled';
+        await booking.save();
+
+        const cage = await Cage.findById({ _id: cageid });
+        if (cage) {
+            cage.currentBookings = cage.currentBookings.filter(booking => booking.bookingid !== bookingid);
+            await cage.save();
         }
+
+        const user = await UserModel.findById(booking.userid);
+        if (user) {
+            user.wallet += booking.totalamount.valueOf(); 
+            await user.save();
+        }
+
+        return true;
     }
+
+    return false;
+}
+
+ async getAllBookingWithUserDetails(): Promise<booking[] | null> {
+    try {
+        const bookings = await Booking.aggregate([
+          {
+            $addFields: {
+              userid: { $toObjectId: "$userid" }, // Convert userid to ObjectId
+            },
+          },
+          {
+            $lookup: {
+              from: 'users', 
+              localField: 'userid', 
+              foreignField: '_id', 
+              as: 'userDetails', 
+            },
+          },
+          {
+            $unwind: '$userDetails', 
+          },
+          {
+            $project: {
+              _id: 1,
+              kennelname: 1,
+              cageid: 1,
+              userid: 1,
+              fromdate: 1,
+              todate: 1,
+              totalamount: 1,
+              totaldays: 1,
+              transactionId: 1,
+              status: 1,
+              ownerid: 1,
+              username: '$userDetails.name', // Extracting the username
+              phone: '$userDetails.phone', // Extracting the phone number
+            },
+          },
+        ]);
+       
+        return bookings;
+      } catch (error) {
+        console.error('Error fetching bookings with user details:', error);
+        throw error;
+      }
 }
 
 }

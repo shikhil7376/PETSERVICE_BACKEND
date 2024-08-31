@@ -157,6 +157,60 @@ class userController {
       next(error);
     }
   }
+
+  async addPost(req:Request,res:Response,next:NextFunction){
+    try {  
+      const { userid,description} = req.body; 
+      const data={id:userid,description:description}
+      const images =  req.files as Express.Multer.File[];
+      const imagepath = images.map((val)=>val.path) 
+      const response = await this.userUseCase.addUserPost(data,imagepath)
+      return res.status(response.status).json(response.data.message);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getPosts(req:Request,res:Response,next:NextFunction){
+    try {      
+      const response = await this.userUseCase.getAllPosts()
+      return res.status(response.status).json(response.data);
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  async likePost(req:Request,res:Response,next:NextFunction){
+    try {
+      const {userId} = req.body;
+      const { postId } = req.params;
+      const response = await this.userUseCase.likePost(userId,postId)    
+      return res.status(response.status).json(response.data.message)  
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  async commentPost(req:Request,res:Response,next:NextFunction){
+    try {
+      const {postId,userId,comment} = req.body
+      const data = {postId,userId,comment}
+      const response = await this.userUseCase.commentPost(data)
+      return res.status(response.status).json(response.data.message)
+    } catch (error) {
+      next(error) 
+    }
+  }
+
+  async getComments(req:Request,res:Response,next:NextFunction){
+    try {
+        const {postId} = req.body
+       const response = await this.userUseCase.getAllComments(postId)
+       return res.status(response.status).json(response.data.data) 
+    } catch (error) {
+      next(error)
+    }
+  }
 }
 
 export default userController;
