@@ -4,6 +4,13 @@ import OtpModel from "../database/otpModel";
 import { User } from "../../domain/user";
 import Otp from "../../domain/otp";
 import { OtpDetails } from "../../domain/user";
+import { postdetails } from "../../domain/dogPost";
+import DogPost from "../database/dogPostModel";
+import errorHandle from "../middleware/errorHandle";
+import mongoose, { Types } from 'mongoose';
+import { commentDetails, getComments } from "../../domain/Comment";
+import CommentModel from "../database/commentModel";
+ 
 
 class UserRepository implements UserRepo {
   async findByEmail(email: string): Promise<User | null> {
@@ -92,6 +99,152 @@ class UserRepository implements UserRepo {
     });
     return updatedProfile;
   }
+   async addPost(data: postdetails): Promise<boolean> {
+      try {
+        const newPost = new DogPost({
+          user:data.id,
+          description:data.description,
+          image:data.image,
+        })
+        await newPost.save()
+        return true
+      } catch (error) {
+        throw new Error(error as string)
+      }  
+   }
+   async getAllPost(): Promise<postdetails[]> {
+       try {
+            const posts = await DogPost.aggregate([
+              {
+                $lookup:{
+                  from:'users',
+                  localField:'user',
+                  foreignField:"_id",
+                  as:'userDetails'
+                }
+              },
+              {
+                $unwind:'$userDetails'
+              },
+              {
+                $project:{
+                  _id:1,
+                  images:'$image',
+                  description: 1,
+                  likeCount: { $size: "$likes" },
+                  commentCount: { $size: "$comments" }, 
+                  likes:1,
+                  "userDetails.name": 1,
+                  "userDetails.email": 1,
+                  "userDetails.image": 1,
+                }
+              }
+            ])
+            return posts.map(post => ({
+              id: post._id.toString(),
+              images: post.images,
+              description: post.description,
+              likeCount: post.likeCount,
+              commentCount: post.commentCount,
+              likes: post.likes, 
+              user: {
+                name: post.userDetails.name,
+                email: post.userDetails.email,
+                image: post.userDetails.image,
+              }
+            }));
+
+       } catch (error) {
+         throw new Error(error as string)
+         return []
+       }
+   }
+  async likePost(userId: string, postId: string): Promise<boolean> {
+       try {
+           const post = await DogPost.findById(postId)
+           if(!post) throw new Error("Post not found")
+            const userObjectId = new Types.ObjectId(userId);
+            const hasLiked = post.likes.includes(userObjectId)
+            if (hasLiked) {
+              post.likes = post.likes.filter(id => !id.equals(userObjectId));
+          } else {
+              post.likes.push(userObjectId);
+          }
+          await post.save();
+          return true
+       } catch (error) {
+         throw new Error(error as string)
+       }
+   }
+   async commentPost(data: commentDetails): Promise<boolean> {
+      const {userId,postId,comment} = data
+      const userObjectId = new Types.ObjectId(userId);
+      const postObjectId = new Types.ObjectId(postId);
+
+     
+      
+      try {   
+        const newComment = new CommentModel({
+          user:userObjectId,
+          post:postObjectId,
+          text:comment
+        })
+
+        console.log('jijijnrs',newComment);
+        
+        const savedComment = await newComment.save();
+         return true
+      } catch (error) {
+        throw new Error(error as string)
+      }
+   }
+
+   async getAllComments(postId: string): Promise<getComments[]> {
+    try {
+      const comments = await CommentModel.aggregate([
+          {
+              $match: { post: new mongoose.Types.ObjectId(postId) }  // Match the post ID
+          },
+          {
+              $lookup: {
+                  from: 'users',  // The collection name in the database
+                  localField: 'user',
+                  foreignField: '_id',
+                  as: 'userDetails'
+              }
+          },
+          {
+              $unwind: '$userDetails'  // Unwind the array to get a single object
+          },
+          {
+              $project: {
+                  _id: 1,
+                  text: 1,
+                  createdAt: 1,
+                  'user.name': '$userDetails.name',
+                  'user.email': '$userDetails.email',
+                  'user.image': '$userDetails.image'
+              }
+          }
+      ]).exec();
+
+      // Convert the result to the expected TypeScript type
+      const typedComments = comments.map(comment => ({
+          _id: comment._id.toString(),
+          text: comment.text,
+          createdAt: comment.createdAt,
+          user: {
+              name: comment.user.name,
+              email: comment.user.email,
+              image: comment.user.image,
+          }
+      })) as getComments[];
+
+      return typedComments;
+  } catch (error) {
+      throw new Error(error as string);
+  }
+   }
 }
 
 export default UserRepository;

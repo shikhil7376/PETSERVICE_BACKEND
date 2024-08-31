@@ -6,6 +6,8 @@ import JWTTOKEN from "../infrastructure/services/generateToken";
 import Cloudinary from "../infrastructure/services/cloudinary";
 import { User } from "../domain/user";
 import { UserDetails } from "../domain/user";
+import { postdetails } from "../domain/dogPost";
+import { commentDetails } from "../domain/Comment";
 
 class UserUseCase {
   private UserRepository;
@@ -389,6 +391,111 @@ class UserUseCase {
         status: 400,
         message: "failed to update profile",
       };
+    }
+  }
+
+  async addUserPost(data:postdetails,filepath: string[]){
+     const imageUrls = await this.Cloudinary.uploadMultipleimages(
+      filepath,
+      "userpost"
+    );
+    data.image = imageUrls;
+    const response = await this.UserRepository.addPost(data)
+     if(response){
+      return {
+        status:200,
+         data:{
+          message:"post added succesfully"
+         }
+      }
+     }else{
+        return{
+          status:400,
+          data:{
+              message:'failed to add post'
+          }
+        }
+     }
+  }
+  async getAllPosts(){
+    const response = await this.UserRepository.getAllPost()
+
+    if(response){
+      return{
+        status:200,
+        data:{
+          data:response,
+          message:'fetch all posts succesfully'
+        }
+      }
+    }else{
+      return{
+        status:400,
+        data:{
+          message:'failed to fetch all posts'
+        }
+      }
+    }
+  }
+
+  async likePost(userId:string,postId:string){
+    const response = await this.UserRepository.likePost(userId,postId)
+    if(response){
+      return{
+        status:200,
+        data:{
+          message:'post liked succesfully'
+        }
+      }
+    }else{
+      return{
+        status:400,
+        data:{
+          message:'failed to like post'
+        }
+      }
+    }
+
+  }
+
+  async commentPost(data:commentDetails){
+    
+    
+   const response = await this.UserRepository.commentPost(data)
+   if(response){
+    return {
+      status:200,
+      data:{
+        message:'comment added succesfully'
+      }
+    }
+   }else{
+      return{
+        status:400,
+        data:{
+          message:'failed to add comment'
+        }
+      }
+   }
+  }
+
+  async getAllComments(postId:string){
+    const response = await this.UserRepository.getAllComments(postId)
+    if(response){
+      return{
+        status:200,
+        data:{
+          message:'fetch all comments succesfully',
+          data:response
+        }
+      }
+    }else{
+      return{
+        status:400,
+        data:{
+          message:'failed to fetch all comments'
+        }
+      }
     }
   }
 }

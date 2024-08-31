@@ -42,4 +42,9 @@ route.post('/verify-fresendotp',(req,res,next)=>userController.verifyforgotResen
 route.post('/resetpassword',(req,res,next)=>userController.resetPassword(req,res,next))
 route.post('/getprofile',userAuth,(req,res,next)=>userController.getProfile(req,res,next))
 route.post('/edit-profile',upload.single('userimage'),(req,res,next)=>userController.editProfile(req,res,next))
+route.post('/add-post',upload.array('postimages',3),(req,res,next)=>userController.addPost(req,res,next))
+route.get('/get-posts',(req,res,next)=>userController.getPosts(req,res,next))
+route.post('/like-post/:postId',(req,res,next)=>userController.likePost(req,res,next))
+route.post('/comment-post',(req,res,next)=>userController.commentPost(req,res,next))
+route.post('/get-comments',(req,res,next)=>userController.getComments(req,res,next))
 export default route
