@@ -1,6 +1,7 @@
 import VerifiedKennelOwner from "../../../domain/verifiedKennelOwner";
 import cages from "../../../domain/cages";
 import booking from "../../../domain/Booking";
+import { AdminDashboardData } from "../../../domain/Booking";
 
 interface verifiedKennelOwnerRepo{
    save(kennelOwner:any):Promise<VerifiedKennelOwner>
@@ -18,6 +19,7 @@ interface verifiedKennelOwnerRepo{
    getbookings(id:string):Promise<booking[]|null>
    cancelBooking(bookingid:string,cageid:string):Promise<boolean>
    getAllBookingWithUserDetails():Promise<booking[]|null>
+   getKennelOwnerDashboardData(ownerId:string):Promise<AdminDashboardData>
 }
 
  export interface savebooking{
@@ -28,7 +30,9 @@ interface verifiedKennelOwnerRepo{
    toDate:string,
    totalAmount:number,
    totalDays:number,
-   userId:string
+   userId:string,
+   adminCommission:Number,
+   kennelOwnerProfit:Number
 }
 
 export default verifiedKennelOwnerRepo

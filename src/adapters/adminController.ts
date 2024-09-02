@@ -102,6 +102,16 @@ async blockkennelOwner(req:Request,res:Response,next:NextFunction) {
     }
  }
 
+ async getDashboard(req:Request,res:Response,next:NextFunction){
+    try {
+        const result = await this.AdminUseCase.getDashboard()
+        return res.status(result.status).json(result.data)
+    } catch (error) {
+        next(error)
+    }
+
+ }
+
 }
 
 

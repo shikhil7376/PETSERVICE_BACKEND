@@ -3,10 +3,11 @@ import VerifiedKennelOwnerModel from "../../database/VerifiedKennelownerModel";
 import verifiedKennelOwnerRepo from "../../../useCase/interface/Kennel/VerifiedKennelRepo";
 import cages from "../../../domain/cages";
 import Cage from "../../database/cagesModel";
-import booking from "../../../domain/Booking";
+import booking, { AdminDashboardData } from "../../../domain/Booking";
 import Booking from "../../database/bookingModel";
 import { savebooking } from "../../../useCase/interface/Kennel/VerifiedKennelRepo";
 import UserModel from "../../database/userModel";
+import { format, parse, isValid, startOfDay, endOfDay } from 'date-fns';
 
 class VerifiedkennelRepository implements verifiedKennelOwnerRepo{
    async save(kennelOwner: any): Promise<VerifiedKennelOwner> {
@@ -40,6 +41,8 @@ async getSingleCage(id: string): Promise<cages | null> {
 }
 
 async savebooking(data: savebooking): Promise<boolean | null> {
+  console.log(data);
+
     const newbooking = new Booking({
         kennelname:data.kennelName,
         cageid:data.cageid,
@@ -49,6 +52,8 @@ async savebooking(data: savebooking): Promise<boolean | null> {
         totalamount:data.totalAmount,
         totaldays:data.totalDays,
         ownerid:data.ownerid,
+        kennelOwnerProfit:data.kennelOwnerProfit,
+        adminCommission:data.adminCommission,
         transactionId:'1234'
      })
      const booking = await newbooking.save()
@@ -176,6 +181,53 @@ async cancelBooking(bookingid: string, cageid: string): Promise<boolean> {
         console.error('Error fetching bookings with user details:', error);
         throw error;
       }
+}
+
+
+async getKennelOwnerDashboardData(ownerId: string): Promise<AdminDashboardData> {
+  const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+  
+    const dailyProfitResult = await Booking.aggregate([
+      { $match: { createdAt: { $gte: startOfDay, $lte: endOfDay }, ownerid: ownerId, status: { $ne: "cancelled" } } },
+      { $group: { _id: null, totalProfit: { $sum: "$kennelOwnerProfit" } } }
+  ]);
+  const dailyProfit = dailyProfitResult[0]?.totalProfit || 0;
+
+     // Calculate Monthly Profit
+     const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+     const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59, 999);
+ 
+     const monthlyProfitResult = await Booking.aggregate([
+         { $match: { createdAt: { $gte: startOfMonth, $lte: endOfMonth }, ownerid: ownerId, status: { $ne: "cancelled" } } },
+         { $group: { _id: null, totalProfit: { $sum: "$kennelOwnerProfit" } } }
+     ]);
+     const monthlyProfit = monthlyProfitResult[0]?.totalProfit || 0;
+
+       // Calculate Daily Bookings
+    const dailyBookings = await Booking.countDocuments({
+      createdAt: { $gte: startOfDay, $lte: endOfDay },
+      ownerid: ownerId,
+      status: { $ne: "cancelled" }
+  });
+
+  // Calculate Monthly Bookings
+  const monthlyBookings = await Booking.countDocuments({
+      createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+      ownerid: ownerId,
+      status: { $ne: "cancelled" }
+  });
+
+  return {
+    dailyBookings,
+    monthlyBookings,
+    dailyProfit,
+    monthlyProfit
+};
+
 }
 
 }
