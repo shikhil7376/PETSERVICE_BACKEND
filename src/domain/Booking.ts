@@ -14,6 +14,15 @@ interface booking{
     cageImage: string,
     _id?:string,
     phone?:string,
+    adminCommission:Number,
+    kennelOwnerProfit:Number,
 }
 
 export default booking
+
+export interface AdminDashboardData {
+    dailyBookings: number;
+    monthlyBookings:number;
+    dailyProfit: number;
+    monthlyProfit: number;
+}

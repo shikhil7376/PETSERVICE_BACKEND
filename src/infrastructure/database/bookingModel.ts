@@ -31,6 +31,14 @@ const bookingSchema:Schema<booking&Document> = new Schema({
     type:Number,
     required:true
    },
+   adminCommission:{
+    type: Number,
+    required: true
+   },
+   kennelOwnerProfit:{
+    type: Number,
+    required: true
+   },
    transactionId:{
     type:String, 
     required:true
@@ -44,7 +52,7 @@ const bookingSchema:Schema<booking&Document> = new Schema({
     type:String,
     required:true
   }
-})
+},{timestamps:true})
 
 const Booking:Model<booking&Document> = mongoose.model("Booking",bookingSchema)
 

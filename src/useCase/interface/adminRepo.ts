@@ -1,4 +1,5 @@
 import approve from "../../domain/approve"
+import { AdminDashboardData } from "../../domain/Booking"
 
 
 interface adminRepo{
@@ -11,6 +12,7 @@ interface adminRepo{
     getVerifiedKennelOwner(page:number,limit:number,searchTerm:string):Promise<{users:{}[], total:number}>
     blockKennelOwner(reqId:string):Promise<boolean>
     UnblockKennelOwner(reqId:string):Promise<boolean>
+    getAdminDashboardData():Promise<AdminDashboardData>
 }
 
 

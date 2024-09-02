@@ -527,6 +527,8 @@ class KennelUseCase {
   }
 
   async handleEvent(sig: string, body: any) {
+    console.log('here.... webhook');
+    
     const stripeKey = process.env.STRIPE_KEY;
     if (!stripeKey) {
       throw new Error("Stripe key is not defined");
@@ -554,6 +556,9 @@ class KennelUseCase {
           console.log("Customer has been deleted.");
         } else {
           const metadata = customerResponse.metadata;
+          const adminCommissionPercentage = 0.15;
+          const adminProfit = parseInt(metadata.totalAmount) * adminCommissionPercentage;
+          const kennelOwnerAmount = parseInt(metadata.totalAmount) - adminProfit;
           const data: savebooking = {
             cageid: metadata.cageid,
             fromDate: metadata.fromDate,
@@ -562,8 +567,10 @@ class KennelUseCase {
             ownerid: metadata.ownerid,
             totalAmount: parseInt(metadata.totalAmount),
             totalDays: parseInt(metadata.totalDays),
+            kennelOwnerProfit: kennelOwnerAmount,
+            adminCommission:adminProfit,
             userId: metadata.userId,
-          };
+          };          
 
           const bookinginfo = await this.verifiedkennelRepository.savebooking(
             data
@@ -602,6 +609,29 @@ class KennelUseCase {
         }
       }
     }
+  }
+
+  async getDashboard(ownerId:string){
+     const response = await this.verifiedkennelRepository.getKennelOwnerDashboardData(ownerId)
+     if(response){
+      return{
+          status:200,
+          data:{
+              dailyBookings:response.dailyBookings,
+              monthlyBookings:response.monthlyBookings,
+              dailyProfit:response.dailyProfit,
+              monthlyProfit:response.monthlyProfit,
+              message:'data fetch successfully' 
+          }
+      }
+  }else{
+      return{
+          status:400,
+          data:{
+              message:'failed to fetch data'
+          }
+      }
+  }
   }
 }
 

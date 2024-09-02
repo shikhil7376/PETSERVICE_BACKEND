@@ -201,6 +201,29 @@ class adminUseCase{
             }
         }
     }
+
+    async getDashboard(){
+        const response = await this.AdminRepo.getAdminDashboardData()
+        if(response){
+            return{
+                status:200,
+                data:{
+                    dailyBookings:response.dailyBookings,
+                    monthlyBookings:response.monthlyBookings,
+                    dailyProfit:response.dailyProfit,
+                    monthlyProfit:response.monthlyProfit,
+                    message:'data fetch successfully' 
+                }
+            }
+        }else{
+            return{
+                status:400,
+                data:{
+                    message:'failed to fetch data'
+                }
+            }
+        }
+    }
 }
 
 export default adminUseCase

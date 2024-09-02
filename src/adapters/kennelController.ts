@@ -122,9 +122,7 @@ async viewDetails(req:Request,res:Response,next:NextFunction){
 async booking(req:Request,res:Response,next:NextFunction){
     try {           
         
-       const{details,userid,email,fromdate,todate,totalAmount,totalDays} = req.body
-       console.log('details',details);
-       
+       const{details,userid,email,fromdate,todate,totalAmount,totalDays} = req.body       
       const paymentData ={
          details,
          userid,
@@ -240,6 +238,9 @@ async cancelBooking(req:Request,res:Response,next:NextFunction){
 
 async handleWebhook(req:Request,res:Response,next:NextFunction){
    try {  
+
+    console.log('weboooo');
+    
     const sig: string | string[] | undefined = req.headers['stripe-signature'];
     if (!sig || Array.isArray(sig)) {
         return res.status(400).send("Invalid Stripe signature");
@@ -259,6 +260,17 @@ async getAllBookings(req:Request,res:Response,next:NextFunction){
   } catch (error) {
     next(error)
   }
+}
+
+async getDashboard(req:Request,res:Response,next:NextFunction){
+  try {
+    const {ownerId} = req.body
+    const response = await this.kennelusecase.getDashboard(ownerId)
+    return res.status(response.status).json(response.data)
+  } catch (error) {
+    next(error)
+  }
+
 }
 
 }

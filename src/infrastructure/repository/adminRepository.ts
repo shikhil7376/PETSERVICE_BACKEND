@@ -2,11 +2,13 @@ import adminRepo from "../../useCase/interface/adminRepo";
 import UserModel from "../database/userModel";
 import KennelOwnerModel from "../database/kennelOwnerModel";
 import VerifiedKennelOwnerModel from "../database/VerifiedKennelownerModel";
+import Booking from "../database/bookingModel";
 import approve from "../../domain/approve";
 import {
   searchAndPagination,
   kennelSearchAndPagination,
 } from "../../utils/reuse";
+import { AdminDashboardData } from "../../domain/Booking";
 
 class adminRepository implements adminRepo {
   async getUsers(
@@ -119,6 +121,51 @@ class adminRepository implements adminRepo {
       { $set: { isBlocked: false } }
     );
     return unblock.modifiedCount > 0;
+  }
+
+   async getAdminDashboardData(): Promise<AdminDashboardData> {
+    // Calculate Daily Profit
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const dailyProfitResult = await Booking.aggregate([
+        { $match: { createdAt: { $gte: startOfDay, $lte: endOfDay }, status: { $ne: "cancelled" } } },
+        { $group: { _id: null, totalProfit: { $sum: "$adminCommission" } } }
+    ]);
+    const dailyProfit = dailyProfitResult[0]?.totalProfit || 0;
+
+    // Calculate Monthly Profit
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const monthlyProfitResult = await Booking.aggregate([
+        { $match: { createdAt: { $gte: startOfMonth, $lte: endOfMonth }, status: { $ne: "cancelled" } } },
+        { $group: { _id: null, totalProfit: { $sum: "$adminCommission" } } }
+    ]);
+    const monthlyProfit = monthlyProfitResult[0]?.totalProfit || 0;
+
+    // Calculate Daily Bookings
+    const dailyBookings = await Booking.countDocuments({
+        createdAt: { $gte: startOfDay, $lte: endOfDay },
+        status: { $ne: "cancelled" }
+    });
+
+    // Calculate Monthly Bookings
+    const monthlyBookings = await Booking.countDocuments({
+        createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+        status: { $ne: "cancelled" }
+    });
+
+    // Return the dashboard data
+    return {
+        dailyBookings,
+        monthlyBookings,
+        dailyProfit,
+        monthlyProfit
+    };
   }
 }
 
