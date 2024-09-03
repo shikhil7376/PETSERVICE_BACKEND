@@ -4,6 +4,7 @@ import { OtpDetails } from "../../domain/user";
 import { postdetails } from "../../domain/dogPost";
 import { commentDetails } from "../../domain/Comment";
 import { getComments } from "../../domain/Comment";
+import { UserNotFollow } from "../../domain/user";
 
 interface UserRepo{
     findByEmail(email:string):Promise<User|null>
@@ -23,6 +24,8 @@ interface UserRepo{
     likePost(userId:string,postId:string):Promise<boolean>
     commentPost(data:commentDetails):Promise<boolean>
     getAllComments(postId:string):Promise<getComments[]>
+    follow(userId:string,targetId:string):Promise<boolean>
+    userNotFollow(userId:string):Promise<UserNotFollow[]>
 }
 
 

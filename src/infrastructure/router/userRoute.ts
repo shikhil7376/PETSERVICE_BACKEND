@@ -47,4 +47,6 @@ route.get('/get-posts',(req,res,next)=>userController.getPosts(req,res,next))
 route.post('/like-post/:postId',(req,res,next)=>userController.likePost(req,res,next))
 route.post('/comment-post',(req,res,next)=>userController.commentPost(req,res,next))
 route.post('/get-comments',(req,res,next)=>userController.getComments(req,res,next))
+route.post('/follow',(req,res,next)=>userController.follow(req,res,next))
+route.post('/user-not-follow',(req,res,next)=>userController.userNotFollow(req,res,next))
 export default route
