@@ -498,6 +498,48 @@ class UserUseCase {
       }
     }
   }
+
+async follow(userId:string,targetId:string){
+   const response = await this.UserRepository.follow(userId,targetId)
+   if(response){
+    return{
+      status:200,
+      data:{
+        message:'user followed/unfollowed succesfully'
+      }
+    }
+   }else{
+     return{
+      status:200,
+      data:{
+        message:'failed to follow/unfollow user'
+      }
+     }
+   }
+}
+
+async userNotFollow(userId:string){
+  const response = await this.UserRepository.userNotFollow(userId)
+  console.log(response);
+  
+  if (response && response.length > 0) {
+    return {
+      status: 200,
+      data: response.map(user => ({
+        _id: user._id,
+        name: user.name,
+        image: user.image
+      }))
+    };
+  } else {
+    return {
+      status: 200,
+      data: [] 
+    };
+  }
+  
+}
+
 }
 
 export default UserUseCase;

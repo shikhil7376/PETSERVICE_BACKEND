@@ -17,6 +17,7 @@ export type postdetails ={
     commentCount?:number,
     likes?: string[];
     user?:{
+        _id?:string;
         name:string;
         email:string;
         image:string

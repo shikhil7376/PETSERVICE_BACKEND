@@ -211,6 +211,26 @@ class userController {
       next(error)
     }
   }
+
+  async follow(req:Request,res:Response,next:NextFunction){
+    try {
+      const {userId,targetId} = req.body
+      const response = await this.userUseCase.follow(userId,targetId)
+      return res.status(response.status).json(response.data.message)
+    } catch (error) {
+       next(error)
+    }
+  }
+  async userNotFollow(req:Request,res:Response,next:NextFunction){
+      try {
+        const {userId} = req.body
+        const response = await this.userUseCase.userNotFollow(userId)
+        return res.status(response.status).json(response.data)
+      } catch (error) {
+        next(error)
+      }
+  }
+
 }
 
 export default userController;

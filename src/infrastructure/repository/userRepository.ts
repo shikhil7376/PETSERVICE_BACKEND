@@ -1,7 +1,7 @@
 import UserModel from "../database/userModel";
 import UserRepo from "../../useCase/interface/userRepo";
 import OtpModel from "../database/otpModel";
-import { User } from "../../domain/user";
+import { User, UserNotFollow } from "../../domain/user";
 import Otp from "../../domain/otp";
 import { OtpDetails } from "../../domain/user";
 import { postdetails } from "../../domain/dogPost";
@@ -10,6 +10,7 @@ import errorHandle from "../middleware/errorHandle";
 import mongoose, { Types } from 'mongoose';
 import { commentDetails, getComments } from "../../domain/Comment";
 import CommentModel from "../database/commentModel";
+
  
 
 class UserRepository implements UserRepo {
@@ -134,12 +135,18 @@ class UserRepository implements UserRepo {
                   likeCount: { $size: "$likes" },
                   commentCount: { $size: "$comments" }, 
                   likes:1,
+                  "userDetails._id": 1,
                   "userDetails.name": 1,
                   "userDetails.email": 1,
                   "userDetails.image": 1,
+                  "userDetails.followers": 1,
+                  
                 }
               }
             ])
+
+            
+            
             return posts.map(post => ({
               id: post._id.toString(),
               images: post.images,
@@ -148,9 +155,11 @@ class UserRepository implements UserRepo {
               commentCount: post.commentCount,
               likes: post.likes, 
               user: {
+                userid:post.userDetails._id.toString(),
                 name: post.userDetails.name,
                 email: post.userDetails.email,
                 image: post.userDetails.image,
+                followers: post.userDetails.followers,
               }
             }));
 
@@ -244,6 +253,71 @@ class UserRepository implements UserRepo {
   } catch (error) {
       throw new Error(error as string);
   }
+   }
+
+   async follow(userId: string, targetId: string): Promise<boolean> {
+      try {
+        if(userId ==targetId){
+          return false
+        }
+        const user = await UserModel.findById(userId);
+        const targetUser = await UserModel.findById(targetId);
+
+        if (!user || !targetUser) {
+          return false
+      }
+      const targetObjectId = new Types.ObjectId(targetId);
+      const userObjectId = new Types.ObjectId(userId);
+      const isFollowing = user.following.includes(targetObjectId);
+
+      if(isFollowing){
+        user.following = user.following.filter(
+          (id: Types.ObjectId) => !id.equals(targetObjectId)
+        );
+        targetUser.followers = targetUser.followers.filter(
+          (id: Types.ObjectId) => !id.equals(user._id)
+        );
+        await user.save()
+        await targetUser.save()
+        return true
+      } else{
+        user.following.push(targetObjectId)
+        targetUser.followers.push(userObjectId);
+        await user.save()
+        await targetUser.save()
+        return true
+      }
+      } catch (error) {
+        throw new Error(error as string);
+        
+      }
+   }
+   async userNotFollow(userId: string): Promise<UserNotFollow[]> {
+     try {
+      const userObjectId = new mongoose.Types.ObjectId(userId);
+      const currentUser = await UserModel.findById(userObjectId).select('followers following');
+      if (!currentUser) {
+        throw new Error("User not found");
+    }
+
+    const excludeIds = [...currentUser.followers, ...currentUser.following, userObjectId];
+
+    const usersNotInFollowersOrFollowing = await UserModel.find({
+      _id: { $nin: excludeIds }, 
+      isAdmin: false 
+  })
+      .select('_id name image') // Select only the _id, name, and image fields
+      .limit(4) // Limit the result to 4 users
+      .lean<UserNotFollow[]>(); // Use lean() to return plain JavaScript objects instead of Mongoose documents
+
+      return usersNotInFollowersOrFollowing.map(user => ({
+        _id: user._id.toString(),
+        name: user.name,
+        image: user.image,
+    }));
+     } catch (error) {
+      throw new Error(error as string);
+     }
    }
 }
 
