@@ -61,8 +61,7 @@ class adminController{
     }
   }
 async rejectKennel(req:Request,res:Response,next:NextFunction){
-  try {   
-      
+  try {    
       const reject = await this.AdminUseCase.rejectKennel(req.body.reqId)
     if(reject.status ==200){
         return res.status(reject.status).json({message:reject.data.message})
