@@ -26,6 +26,7 @@ interface UserRepo{
     getAllComments(postId:string):Promise<getComments[]>
     follow(userId:string,targetId:string):Promise<boolean>
     userNotFollow(userId:string):Promise<UserNotFollow[]>
+    allUsers(userId:string,keyword:string):Promise<any>
 }
 
 

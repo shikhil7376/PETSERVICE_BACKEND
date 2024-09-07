@@ -540,6 +540,12 @@ async userNotFollow(userId:string){
   
 }
 
+async allUsers(userId:string,keyword:string){
+  const response = await this.UserRepository.allUsers(userId,keyword)
+  console.log(response);
+  
+}
+
 }
 
 export default UserUseCase;

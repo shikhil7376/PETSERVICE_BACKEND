@@ -9,6 +9,7 @@ import errorHandle from '../middleware/errorHandle'
 import userRoute from '../router/userRoute'
 import kennelRoute from '../router/kennelRoute'
 import adminRoute from '../router/adminRoutes'
+import chatRoute from '../router/chatRoutes'
 
 const app = express()
 export const httpServer = http.createServer(app)
@@ -27,6 +28,6 @@ app.use(cors(corsOption))
 app.use("/api/user",userRoute)
 app.use('/api/kennel',kennelRoute)
 app.use('/api/admin',adminRoute)
-
+app.use('/api/chat',chatRoute)
 
 app.use(errorHandle) 
