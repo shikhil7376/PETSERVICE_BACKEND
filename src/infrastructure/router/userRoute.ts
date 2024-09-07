@@ -49,4 +49,5 @@ route.post('/comment-post',(req,res,next)=>userController.commentPost(req,res,ne
 route.post('/get-comments',(req,res,next)=>userController.getComments(req,res,next))
 route.post('/follow',(req,res,next)=>userController.follow(req,res,next))
 route.post('/user-not-follow',(req,res,next)=>userController.userNotFollow(req,res,next))
+route.post('/getUsers',(req,res,next)=>userController.allUsers(req,res,next))
 export default route

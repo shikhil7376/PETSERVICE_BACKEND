@@ -231,6 +231,17 @@ class userController {
       }
   }
 
+  async allUsers(req:Request,res:Response,next:NextFunction){
+      try {
+        const {userId} = req.body
+        const keyword = typeof req.query.search === 'string' ? req.query.search : '';
+        const allUsers = await this.userUseCase.allUsers(userId,keyword)
+        
+      } catch (error) {
+        next(error)
+      }
+  }
+
 }
 
 export default userController;

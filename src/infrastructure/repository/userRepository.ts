@@ -319,6 +319,19 @@ class UserRepository implements UserRepo {
       throw new Error(error as string);
      }
    }
+
+    async allUsers(userId: string, keyword: string): Promise<any> {
+         const words = keyword
+         ?{
+          $or:[
+            {name:{$regex:keyword,$options:'i'}},
+            {email:{$regex:keyword,$options:'i'}},
+
+          ]
+         }:{}
+         const users = await UserModel.find(words).find({_id:{$ne:userId}})
+          return users
+    }
 }
 
 export default UserRepository;
