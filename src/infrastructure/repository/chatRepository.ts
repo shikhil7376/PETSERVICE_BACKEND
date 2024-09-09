@@ -49,6 +49,8 @@ class ChatRepository implements chatRepo {
     }
 
     async fetchChat(currentId: string): Promise<any> {
+        console.log(currentId);
+        
         try {
             const results = await chatModel.find({ users: { $elemMatch: { $eq: currentId } } })
                 .populate("users", "-password") // Populate users but exclude the password field

@@ -232,11 +232,11 @@ class userController {
   }
 
   async allUsers(req:Request,res:Response,next:NextFunction){
-      try {
+      try {   
         const {userId} = req.body
         const keyword = typeof req.query.search === 'string' ? req.query.search : '';
         const allUsers = await this.userUseCase.allUsers(userId,keyword)
-        
+         return res.status(allUsers.status).json(allUsers.data)
       } catch (error) {
         next(error)
       }

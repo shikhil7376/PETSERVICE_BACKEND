@@ -542,7 +542,22 @@ async userNotFollow(userId:string){
 
 async allUsers(userId:string,keyword:string){
   const response = await this.UserRepository.allUsers(userId,keyword)
-  console.log(response);
+  if(response){
+    return {
+      status:200,
+      data:{
+        data:response,
+        message:'succesfull'
+      }
+    }
+  }else{
+     return {
+      status:400,
+       data:{
+        message:"failed"
+       }
+     }
+  }
   
 }
 
