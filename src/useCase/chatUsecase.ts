@@ -28,6 +28,7 @@ class ChatUseCase{
 
    async fetchChat(currentId:string){
      const response = await this.chatRepository.fetchChat(currentId)
+     
      if(response){
         return{
             status:200,

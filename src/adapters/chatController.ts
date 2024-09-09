@@ -9,7 +9,7 @@ class ChatController{
 
    async accessChat(req:Request,res:Response,next:NextFunction){
      try {
-        const {currentId,userId} = req.body
+        const {currentId,userId} = req.body  
         const response = await this.chatUsecase.accessChat(currentId,userId)
          return res.status(response.status).json(response.data)
      } catch (error) {
@@ -22,6 +22,7 @@ class ChatController{
         
         const {currentId} = req.body
         const response = await this.chatUsecase.fetchChat(currentId)
+        
         return res.status(response.status).json(response.data)
     } catch (error) {
         next(error)
