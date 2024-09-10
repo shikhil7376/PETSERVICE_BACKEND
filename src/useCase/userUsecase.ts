@@ -342,6 +342,7 @@ class UserUseCase {
       phone: profileData?.phone,
       isBlocked: profileData?.isBlocked,
       image: profileData?.image,
+      wallet:profileData?.wallet
     };
     if (profileData) {
       return {

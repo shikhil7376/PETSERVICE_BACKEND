@@ -36,10 +36,10 @@ const startServer = async():Promise<void>=>{
        })
 
        socket.on('newmessage',(newMessageRecieved)=>{
-        console.log('checksocket',newMessageRecieved);
+        // console.log('checksocket',newMessageRecieved);
         
         var chat = newMessageRecieved.chat;
-         console.log('chatty',chat);
+        //  console.log('chatty',chat);
          
            
            if(!chat.users) return console.log('chat.users not defined');
