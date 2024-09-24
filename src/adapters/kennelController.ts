@@ -163,6 +163,8 @@ async editCage(req:Request,res:Response,next:NextFunction){
      try { 
         const { id, kennelname, location, description, phone, type, maxCount, PricePerNight, ownerId } = req.body;
         const images =  req.files as Express.Multer.File[];
+        console.log('images',images);
+        
         const imagePaths = images.map((val) => val.path);
         const existingCage = await this.kennelusecase.getCageById(id)
         if(!existingCage.data?.data){

@@ -175,6 +175,8 @@ class UserUseCase {
         email: user.email,
         phone: user.phone,
         isBlocked: user.isBlocked,
+        image: user.image,
+        wallet:user.wallet
       };
       if (user.isBlocked) {
         return {
@@ -335,6 +337,7 @@ class UserUseCase {
 
   async getProfile(id: string) {
     const profileData = await this.UserRepository.getProfile(id);
+    const postData = await this.UserRepository.getUserPost(id)        
     let data = {
       _id: profileData?._id,
       name: profileData?.name,
@@ -342,7 +345,11 @@ class UserUseCase {
       phone: profileData?.phone,
       isBlocked: profileData?.isBlocked,
       image: profileData?.image,
-      wallet:profileData?.wallet
+      wallet:profileData?.wallet,
+      followers:profileData?.followers.length,
+      following:profileData?.following.length,
+      posts:postData
+ 
     };
     if (profileData) {
       return {
@@ -382,15 +389,32 @@ class UserUseCase {
     }
     data.image = finalImage;
     const updateOwner = await this.UserRepository.updateProfile(id, data);
+     let response ={
+      _id: updateOwner?._id,
+      name: updateOwner?.name,
+      email: updateOwner?.email,
+      phone: updateOwner?.phone,
+      isBlocked: updateOwner?.isBlocked,
+      image: updateOwner?.image,
+      wallet:updateOwner?.wallet,
+      followers:updateOwner?.followers.length,
+      following:updateOwner?.following.length,
+     }
+     
     if (updateOwner) {
       return {
-        status: 200,
-        message: "profile updated succesfully",
+        data:{
+          status: 200,
+          message: "profile updated succesfully",
+          data:response
+        }  
       };
     } else {
       return {
-        status: 400,
-        message: "failed to update profile",
+        data:{
+          status: 400,
+          message: "failed to update profile",
+        }
       };
     }
   }
@@ -419,8 +443,7 @@ class UserUseCase {
      }
   }
   async getAllPosts(){
-    const response = await this.UserRepository.getAllPost()
-
+    const response = await this.UserRepository.getAllPost()        
     if(response){
       return{
         status:200,
@@ -521,8 +544,7 @@ async follow(userId:string,targetId:string){
 
 async userNotFollow(userId:string){
   const response = await this.UserRepository.userNotFollow(userId)
-  console.log(response);
-  
+
   if (response && response.length > 0) {
     return {
       status: 200,
@@ -560,6 +582,48 @@ async allUsers(userId:string,keyword:string){
      }
   }
   
+}
+async editPost(postid:string,images:string[],description:string){
+   const post = await this.UserRepository.getPostById(postid)
+   if(!post){
+    throw new Error('Post not found');
+   }
+   if(description){
+    post.description = description
+   }
+   if(images && images.length >0){
+    const newImages:string[] =[]
+    for(const image of images){
+      if (image.startsWith('blob:')) {
+        // Upload blob image to Cloudinary
+        const uploadedUrl = await this.Cloudinary.uploadImage(image, 'userpost');
+        newImages.push(uploadedUrl);
+      } else {
+        // It's already uploaded or a valid image URL
+        newImages.push(image);
+      }
+    }
+    post.image = newImages
+   }
+   const updatedPost = await this.UserRepository.updatePost(postid,post)
+   const response = await this.UserRepository.getPostDetailsById(postid)
+   if(response){
+    return{
+      status:200,
+      data:{
+        message:'post updated succesfully',
+        data:response
+      }
+    }
+   }else{
+     return{
+      status:400,
+      data:{
+        message:'failed to update post'
+      }
+     }
+   }
+   
 }
 
 }

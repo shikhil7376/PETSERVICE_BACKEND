@@ -20,28 +20,23 @@ const startServer = async():Promise<void>=>{
          }
       });
 
-      io.on("connection",(socket)=>{
-        // console.log('connected to socket.io');
-        
+      let onlineUsers: Record<string, string> = {};
+      io.on("connection",(socket)=>{ 
        socket.on('setup',(userData)=>{
            socket.join(userData._id)
-        //    console.log(userData._id);
-           
+           onlineUsers[socket.id] = userData._id; 
+           io.emit("userOnline", onlineUsers);
            socket.emit("connected")
        })
 
-       socket.on('joinchat',(room)=>{
+       socket.on('joinchat',(room)=>{                
           socket.join(room)
-        //   console.log('user joined room',room);  
        })
 
        socket.on('newmessage',(newMessageRecieved)=>{
-        // console.log('checksocket',newMessageRecieved);
         
-        var chat = newMessageRecieved.chat;
-        //  console.log('chatty',chat);
-         
-           
+        var chat = newMessageRecieved.chat;       
+
            if(!chat.users) return console.log('chat.users not defined');
 
            chat.users.forEach((user:any) => {
@@ -51,6 +46,32 @@ const startServer = async():Promise<void>=>{
           });
            
        })
+
+       socket.on('deleteMessage',({ messageId,activeChat})=>{        
+            activeChat.forEach((user:any)=>{
+              io.in(user._id).emit('messageDeleted',messageId)
+            })
+             
+       })
+
+       socket.on('videocallInitiated',({roomId,fromUser,toUser,chatId,fromUserName})=>{        
+        socket.in(toUser).emit('videoCallNotify',roomId,fromUserName)
+       })
+
+       socket.on("disconnect", () => {
+        // for (const userId in onlineUsers) {
+        //   if (onlineUsers[userId] === socket.id) {
+        //     delete onlineUsers[userId]; // Remove from the online users list
+    
+        //     // Notify other users that this user is offline
+        //     io.emit("userOffline", userId);
+        //     break;
+          // }
+        // }
+
+        delete onlineUsers[socket.id]; // Remove user from the online list
+        io.emit('userOnline', onlineUsers);
+      });
 
       })
 

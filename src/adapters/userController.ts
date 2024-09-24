@@ -60,7 +60,7 @@ class userController {
   async login(req: Request, res: Response, next: NextFunction) {
     try {
       const { email, password } = req.body;
-      const user = await this.userUseCase.login(email, password);
+      const user = await this.userUseCase.login(email, password)
       return res.status(user.status).json(user.data);
     } catch (error) {
       next(error);
@@ -125,7 +125,7 @@ class userController {
 
   async getProfile(req: Request, res: Response, next: NextFunction) {
     try {
-      const { Id } = req.body;
+      const { Id } = req.params;  
       const response = await this.userUseCase.getProfile(Id);
       return res.status(response.status).json(response.data);
     } catch (error) {
@@ -136,7 +136,7 @@ class userController {
   async editProfile(req: Request, res: Response, next: NextFunction) {
     try {
       const { id, name, email, phone } = req.body;
-      const image = req.file?.path;
+      const image = req.file?.path;      
       const ownerdata = await this.userUseCase.findById(id);
       if (!ownerdata.data) {
         res.status(404).json({ message: "owner not found" });
@@ -152,7 +152,7 @@ class userController {
         updatedData,
         image || ""
       );
-      return res.status(response.status).json(response.message);
+      return res.status(response.data.status).json(response.data);
     } catch (error) {
       next(error);
     }
@@ -240,6 +240,17 @@ class userController {
       } catch (error) {
         next(error)
       }
+  }
+
+  async editPost(req:Request,res:Response,next:NextFunction){
+    try {    
+      const postId = req.params.id;
+      const {description,images} = req.body
+      const response = await this.userUseCase.editPost(postId,images,description)
+       return res.status(response.status).json(response.data)
+    } catch (error) {
+      next(error) 
+    }
   }
 
 }

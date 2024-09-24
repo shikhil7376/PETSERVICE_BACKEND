@@ -1,10 +1,10 @@
 import UserModel from "../database/userModel";
 import UserRepo from "../../useCase/interface/userRepo";
 import OtpModel from "../database/otpModel";
-import { User, UserNotFollow } from "../../domain/user";
+import { Post, User, UserNotFollow } from "../../domain/user";
 import Otp from "../../domain/otp";
 import { OtpDetails } from "../../domain/user";
-import { postdetails } from "../../domain/dogPost";
+import { dogPost, postdetails } from "../../domain/dogPost";
 import DogPost from "../database/dogPostModel";
 import errorHandle from "../middleware/errorHandle";
 import mongoose, { Types } from 'mongoose';
@@ -84,9 +84,67 @@ class UserRepository implements UserRepo {
     return result.modifiedCount > 0;
   }
 
-  async getProfile(id: string): Promise<User | null> {
-    const data = await UserModel.findOne({ _id: id });
-    return data;
+  async  getProfile(id: string): Promise<User | null> {
+    const data = await UserModel.findOne({ _id: id })
+    return data
+  }
+
+  async getUserPost(id: string): Promise<Post[] | null> {
+      try {
+        if (id) {
+          const posts = await DogPost.aggregate([
+              {
+                  $match: { user: new mongoose.Types.ObjectId(id) }
+              },
+              {
+                  $lookup: {
+                      from: 'users',
+                      localField: 'user',
+                      foreignField: '_id',
+                      as: 'userDetails'
+                  }
+              },
+              {
+                  $unwind: '$userDetails'
+              },
+              {
+                  $project: {
+                      _id: 1,
+                      images: '$image',
+                      description: 1,
+                      likeCount: { $size: "$likes" },
+                      commentCount: { $size: "$comments" },
+                      likes: 1,
+                      "userDetails._id": 1,
+                      "userDetails.name": 1,
+                      "userDetails.email": 1,
+                      "userDetails.image": 1,
+                      "userDetails.followers": 1,
+                  }
+              }
+          ]);
+
+          return posts.map(post => ({
+              id: post._id.toString(),
+              images: post.images,
+              description: post.description,
+              likeCount: post.likeCount,
+              commentCount: post.commentCount,
+              likes: post.likes,
+              user: {
+                  userid: post.userDetails._id.toString(),
+                  name: post.userDetails.name,
+                  email: post.userDetails.email,
+                  image: post.userDetails.image,
+                  followers: post.userDetails.followers,
+              }
+          }));
+      } else {
+          return null;
+      }
+      } catch (error) {
+        throw new Error(error as string)
+      }
   }
 
   async findById(id: string): Promise<User | null> {
@@ -189,18 +247,12 @@ class UserRepository implements UserRepo {
       const {userId,postId,comment} = data
       const userObjectId = new Types.ObjectId(userId);
       const postObjectId = new Types.ObjectId(postId);
-
-     
-      
       try {   
         const newComment = new CommentModel({
           user:userObjectId,
           post:postObjectId,
           text:comment
-        })
-
-        console.log('jijijnrs',newComment);
-        
+        })        
         const savedComment = await newComment.save();
          return true
       } catch (error) {
@@ -212,18 +264,18 @@ class UserRepository implements UserRepo {
     try {
       const comments = await CommentModel.aggregate([
           {
-              $match: { post: new mongoose.Types.ObjectId(postId) }  // Match the post ID
+              $match: { post: new mongoose.Types.ObjectId(postId) }  
           },
           {
               $lookup: {
-                  from: 'users',  // The collection name in the database
+                  from: 'users',  
                   localField: 'user',
                   foreignField: '_id',
                   as: 'userDetails'
               }
           },
           {
-              $unwind: '$userDetails'  // Unwind the array to get a single object
+              $unwind: '$userDetails' 
           },
           {
               $project: {
@@ -237,7 +289,6 @@ class UserRepository implements UserRepo {
           }
       ]).exec();
 
-      // Convert the result to the expected TypeScript type
       const typedComments = comments.map(comment => ({
           _id: comment._id.toString(),
           text: comment.text,
@@ -306,9 +357,9 @@ class UserRepository implements UserRepo {
       _id: { $nin: excludeIds }, 
       isAdmin: false 
   })
-      .select('_id name image') // Select only the _id, name, and image fields
-      .limit(4) // Limit the result to 4 users
-      .lean<UserNotFollow[]>(); // Use lean() to return plain JavaScript objects instead of Mongoose documents
+      .select('_id name image') 
+      .limit(4) 
+      .lean<UserNotFollow[]>(); 
 
       return usersNotInFollowersOrFollowing.map(user => ({
         _id: user._id.toString(),
@@ -320,7 +371,7 @@ class UserRepository implements UserRepo {
      }
    }
 
-    async allUsers(userId: string, keyword: string): Promise<any> {
+    async allUsers(userId: string, keyword: string): Promise<User[]|[]> {
          const words = keyword
          ?{
           $or:[
@@ -329,9 +380,94 @@ class UserRepository implements UserRepo {
 
           ]
          }:{}
-         const users = await UserModel.find(words).find({_id:{$ne:userId}})
-          return users
+         const users = await UserModel.find(words).find({_id:{$ne:userId},isAdmin:false}).select('-password')
+         return users
     }
+
+    async getPostById(id: string): Promise<dogPost|null> {
+      try {
+        if(id){
+          const post = await DogPost.findById(id)
+          return post
+        }else{
+          return null
+        }
+      } catch (error) {
+        console.error('Error fetching post:', error); 
+        return null;
+      }
+    }
+
+    async updatePost(postId: string, updatedPost: dogPost): Promise<void> {
+      try {
+         const updatedData = await DogPost.findByIdAndUpdate(postId,updatedPost,{new:true})
+      } catch (error) {
+        console.error('Error updating post:', error);
+        throw new Error('Failed to update post');
+      }
+    }
+   async getPostDetailsById(postId: string): Promise<Post | null> {
+     try {
+      const postAggregation = await DogPost.aggregate([
+        {
+          $match: { _id: new mongoose.Types.ObjectId(postId) } // Match the post by ID
+        },
+        {
+          $lookup: {
+            from: 'users', // Join the users collection
+            localField: 'user',
+            foreignField: '_id',
+            as: 'userDetails'
+          }
+        },
+        {
+          $unwind: '$userDetails' // Flatten the userDetails array
+        },
+        {
+          $project: {
+            _id: 1,
+            images: '$image',
+            description: 1,
+            likeCount: { $size: '$likes' }, // Count likes
+            commentCount: { $size: '$comments' }, // Count comments
+            likes: 1,
+            'userDetails._id': 1,
+            'userDetails.name': 1,
+            'userDetails.email': 1,
+            'userDetails.image': 1,
+            'userDetails.followers': 1 // Include user followers if available
+          }
+        }
+      ]);
+  
+      // If no post is found, return null
+      if (!postAggregation || postAggregation.length === 0) {
+        return null;
+      }
+  
+      const post = postAggregation[0]; // Get the first result
+  
+      // Return the formatted post details
+      return {
+        id: post._id.toString(),
+        images: post.images,
+        description: post.description,
+        likeCount: post.likeCount,
+        commentCount: post.commentCount,
+        likes: post.likes?.map((like: any) => like.toString()), // Convert ObjectIds to strings
+        user: {
+          userid: post.userDetails._id.toString(),
+          name: post.userDetails.name,
+          email: post.userDetails.email,
+          image: post.userDetails.image,
+          followers: post.userDetails.followers, // Assuming followers is available
+        }
+      };
+     } catch (error) {
+      console.error('Error fetching post details:', error);
+      throw new Error('Failed to fetch post details');
+     }
+   } 
 }
 
 export default UserRepository;

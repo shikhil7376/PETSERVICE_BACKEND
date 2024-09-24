@@ -2,19 +2,18 @@ import { chatRepo } from "../../useCase/interface/chatRepo";
 import chatModel from "../database/chatModel";
 import UserModel from "../database/userModel";
 import messageModel from "../database/messageModel";
-import { Message } from "../../domain/message";
+import { Message, sendMessage } from "../../domain/message";
 import mongoose from "mongoose";
 
 
 class ChatRepository implements chatRepo {
 
-    async accessChat(currentId: string, userId: string): Promise<any> {
+    async  accessChat(currentId: string, userId: string): Promise<any> {
         try {
             if (!userId) {
-                console.log('userId not found');
                 return null;
             }
-
+       
             let isChat = await chatModel.findOne({
                 $and: [
                     { users: { $elemMatch: { $eq: currentId } } },
@@ -29,18 +28,16 @@ class ChatRepository implements chatRepo {
                 });
                 return isChat; 
             }
-
+            
             const chatData = {
                 chatName: "sender",
-                isGroupChat: false,
                 users: [currentId, userId]
             };
 
             const createdChat = await chatModel.create(chatData);
             const fullChat = await chatModel
                 .findOne({ _id: createdChat._id })
-                .populate("users", "-password");
-
+                .populate("users", "-password");                
             return fullChat; 
 
         } catch (error) {
@@ -49,13 +46,11 @@ class ChatRepository implements chatRepo {
     }
 
     async fetchChat(currentId: string): Promise<any> {
-        console.log(currentId);
-        
         try {
             const results = await chatModel.find({ users: { $elemMatch: { $eq: currentId } } })
-                .populate("users", "-password") // Populate users but exclude the password field
-                .populate("latestMessage")      // Populate the latest message field
-                .sort({ updatedAt: -1 });       // Sort the chats by the most recently updated
+                .populate("users", "-password") 
+                .populate("latestMessage")      
+                .sort({ updatedAt: -1 });       
 
             const populatedResults = await UserModel.populate(results, {
                 path: "latestMessage.sender",
@@ -69,31 +64,42 @@ class ChatRepository implements chatRepo {
         }
     }
 
-    async sendMessage(userId: string, content: string, chatId: string): Promise<any> {
-        try {
-          const userObjectId = new mongoose.Types.ObjectId(userId);
-          const chatObjectId = new mongoose.Types.ObjectId(chatId);
+    async sendMessage(data:sendMessage): Promise<any> {
+        try {    
+        const {content,senderId,chatId,mediaType,mediaUrl} = data
+        const userObjectId = new mongoose.Types.ObjectId(senderId)
+        const chatObjectId = new mongoose.Types.ObjectId(chatId)
 
-          const newMessage = {
-            sender: userObjectId,
-            content: content,
-            chat: chatObjectId,
-          };
-      
-          var message = await messageModel.create(newMessage);
-     
-          message = await message.populate('sender', 'name image')
-          message = await message.populate('chat');
-         let messages = await UserModel.populate(message,{
-            path:'chat.users',
-            select:'name image email'
-          })
-      
-           await chatModel.findByIdAndUpdate(chatId,{
-            latestMessage:messages
-           })
+        const newMessage:any = {
+            sender:userObjectId,
+            chat:chatObjectId
+        }
+        if(content){
+            newMessage.content = content
+        }
+
+        if(mediaType === 'image'){
+            newMessage.image = mediaUrl
+        }else if(mediaType === 'video'){
+            newMessage.video = mediaUrl
+        }else if(mediaType === 'audio'){
+            newMessage.audio = mediaUrl
+        }
         
-           return messages
+        var message = await messageModel.create(newMessage);
+
+        message = await message.populate('sender', 'name image');
+        message = await message.populate('chat');
+        let messages = await UserModel.populate(message, {
+            path: 'chat.users',
+            select: 'name image email',
+        });
+         
+        await chatModel.findByIdAndUpdate(chatId, {
+            latestMessage: messages,
+        });
+
+        return messages;
         } catch (error) {
           console.error("Error sending message:", error);
           throw new Error("Failed to send message");
@@ -105,6 +111,17 @@ class ChatRepository implements chatRepo {
              return messages
           } catch (error) {
             throw new Error("Failed to send message");
+          }
+      }
+
+      async deleteMessage(msgId: string): Promise<any> {
+          try {
+             const deletemessage = await messageModel.findByIdAndDelete(msgId)
+          if(deletemessage){
+            return deletemessage._id
+          }    
+          } catch (error) {
+            throw new Error("Failed to delete Message");
           }
       }
 }

@@ -28,6 +28,23 @@ class Cloudinary implements cloudinaryI{
       }
   }
 
+  
+
+  async uploadVideo(video: any, folderName: string): Promise<string> {
+    try {    
+      console.log('video',video);
+        
+        const uploadResult = await cloudinary.uploader.upload(video, {
+            folder: `${folderName}`,
+            resource_type: 'video',
+        });        
+        return uploadResult.secure_url;
+    } catch (error) {
+        console.error("Error uploading video to Cloudinary", error);
+        throw error;
+    }
+}
+
   async uploadMultipleimages(images: any[], folderName: string): Promise<string[]> {
       try {
     
@@ -47,6 +64,22 @@ class Cloudinary implements cloudinaryI{
         throw error
       }
   }
+
+ async uploadAudio(audio: any, folderName: string): Promise<string> {
+  try { 
+    const uploadResult = await cloudinary.uploader.upload(audio, {
+      folder: `${folderName}`,
+      resource_type: 'video', // 'video' can also be used for audio files
+      format: 'mp3',  // Use 'raw' for audio files
+    });
+    console.log('uploadResult',uploadResult.secure_url);
+    
+    return uploadResult.secure_url;
+  } catch (error) {
+    console.error('Error uploading audio to Cloudinary', error);
+    throw error;
+  }
+}
 }
 
 export default Cloudinary

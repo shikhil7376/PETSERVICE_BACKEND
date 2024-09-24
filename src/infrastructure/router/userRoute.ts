@@ -40,7 +40,7 @@ route.post('/forgotpassword',(req,res,next)=>userController.forgotPassword(req,r
 route.post('/verify-fotp',(req,res,next)=>userController.verifyfotp(req,res,next))
 route.post('/verify-fresendotp',(req,res,next)=>userController.verifyforgotResendotp(req,res,next))
 route.post('/resetpassword',(req,res,next)=>userController.resetPassword(req,res,next))
-route.post('/getprofile',userAuth,(req,res,next)=>userController.getProfile(req,res,next))
+route.get('/getprofile/:Id',userAuth,(req,res,next)=>userController.getProfile(req,res,next))
 route.post('/edit-profile',upload.single('userimage'),(req,res,next)=>userController.editProfile(req,res,next))
 route.post('/add-post',upload.array('postimages',3),(req,res,next)=>userController.addPost(req,res,next))
 route.get('/get-posts',(req,res,next)=>userController.getPosts(req,res,next))
@@ -50,4 +50,5 @@ route.post('/get-comments',(req,res,next)=>userController.getComments(req,res,ne
 route.post('/follow',(req,res,next)=>userController.follow(req,res,next))
 route.post('/user-not-follow',(req,res,next)=>userController.userNotFollow(req,res,next))
 route.post('/getUsers',(req,res,next)=>userController.allUsers(req,res,next))
+route.patch('/edit-post/:id',(req,res,next)=>userController.editPost(req,res,next))
 export default route
