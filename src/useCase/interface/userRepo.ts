@@ -33,6 +33,7 @@ interface UserRepo{
     getPostById(id:string):Promise<dogPost|null>
     updatePost(postId:string,updatedPost:dogPost):Promise<void>
     getPostDetailsById(postId:string):Promise<Post|null>
+    deletePost(postId:string):Promise<boolean>
 }
 
 

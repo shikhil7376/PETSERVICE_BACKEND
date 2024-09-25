@@ -193,6 +193,7 @@ class UserRepository implements UserRepo {
                   likeCount: { $size: "$likes" },
                   commentCount: { $size: "$comments" }, 
                   likes:1,
+                  createdAt: 1, 
                   "userDetails._id": 1,
                   "userDetails.name": 1,
                   "userDetails.email": 1,
@@ -200,11 +201,13 @@ class UserRepository implements UserRepo {
                   "userDetails.followers": 1,
                   
                 }
+              },
+              {
+                $sort:{
+                  createdAt: -1
+                }
               }
             ])
-
-            
-            
             return posts.map(post => ({
               id: post._id.toString(),
               images: post.images,
@@ -212,6 +215,7 @@ class UserRepository implements UserRepo {
               likeCount: post.likeCount,
               commentCount: post.commentCount,
               likes: post.likes, 
+              createdAt: post.createdAt,
               user: {
                 userid:post.userDetails._id.toString(),
                 name: post.userDetails.name,
@@ -468,6 +472,18 @@ class UserRepository implements UserRepo {
       throw new Error('Failed to fetch post details');
      }
    } 
+
+   async deletePost(postId: string): Promise<boolean> {
+      try {
+         if(postId){
+           const deletePost = await DogPost.findByIdAndDelete(postId)
+           return true
+         }
+         return false
+      } catch (error) {
+        throw new Error('Failed to fetch post details');
+      }
+   }
 }
 
 export default UserRepository;

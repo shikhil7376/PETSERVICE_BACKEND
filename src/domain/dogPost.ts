@@ -16,6 +16,7 @@ export type postdetails ={
     likeCount?:number,
     commentCount?:number,
     likes?: string[];
+    createdAt?: Date
     user?:{
         _id?:string;
         name:string;

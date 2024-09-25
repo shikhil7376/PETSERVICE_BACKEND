@@ -50,5 +50,6 @@ route.post('/get-comments',(req,res,next)=>userController.getComments(req,res,ne
 route.post('/follow',(req,res,next)=>userController.follow(req,res,next))
 route.post('/user-not-follow',(req,res,next)=>userController.userNotFollow(req,res,next))
 route.post('/getUsers',(req,res,next)=>userController.allUsers(req,res,next))
-route.patch('/edit-post/:id',(req,res,next)=>userController.editPost(req,res,next))
+route.patch('/edit-post/:id',upload.array('editPost', 3),(req,res,next)=>userController.editPost(req,res,next))
+route.delete('/delete-post/:id',(req,res,next)=>userController.deletePost(req,res,next))
 export default route

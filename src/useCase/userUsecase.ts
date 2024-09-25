@@ -443,7 +443,7 @@ class UserUseCase {
      }
   }
   async getAllPosts(){
-    const response = await this.UserRepository.getAllPost()        
+    const response = await this.UserRepository.getAllPost()            
     if(response){
       return{
         status:200,
@@ -591,19 +591,9 @@ async editPost(postid:string,images:string[],description:string){
    if(description){
     post.description = description
    }
-   if(images && images.length >0){
-    const newImages:string[] =[]
-    for(const image of images){
-      if (image.startsWith('blob:')) {
-        // Upload blob image to Cloudinary
-        const uploadedUrl = await this.Cloudinary.uploadImage(image, 'userpost');
-        newImages.push(uploadedUrl);
-      } else {
-        // It's already uploaded or a valid image URL
-        newImages.push(image);
-      }
-    }
-    post.image = newImages
+   if(images && images.length >0){  
+    const imageUrls= await this.Cloudinary.uploadMultipleimages(images,'editpostImages')
+    post.image = imageUrls
    }
    const updatedPost = await this.UserRepository.updatePost(postid,post)
    const response = await this.UserRepository.getPostDetailsById(postid)
@@ -623,7 +613,25 @@ async editPost(postid:string,images:string[],description:string){
       }
      }
    }
-   
+}
+
+async deletePost(postId:string){
+  const response = await this.UserRepository.deletePost(postId)
+  if(response){
+    return{
+      status:200,
+      data:{
+        message:'post deleted succesfully'
+      }
+    }
+  }else{
+    return{
+      status:400,
+      data:{
+        messsage:'failed to delete post'
+      }
+    }
+  }
 }
 
 }

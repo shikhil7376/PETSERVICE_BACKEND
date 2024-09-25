@@ -243,13 +243,27 @@ class userController {
   }
 
   async editPost(req:Request,res:Response,next:NextFunction){
-    try {    
-      const postId = req.params.id;
-      const {description,images} = req.body
-      const response = await this.userUseCase.editPost(postId,images,description)
+    try {          
+      const postId = req.params.id;      
+      const {description} = req.body
+      const images =  req.files as Express.Multer.File[];
+      const imagepath = images.map((val)=>val.path)       
+      const response = await this.userUseCase.editPost(postId,imagepath,description)
        return res.status(response.status).json(response.data)
     } catch (error) {
       next(error) 
+    }
+  }
+
+  async deletePost(req:Request,res:Response,next:NextFunction){
+    try {
+      const {id} = req.params
+      const response = await this.userUseCase.deletePost(id)
+      console.log('response',response);
+      
+      return res.status(response.status).json(response.data)
+    } catch (error) {
+      next(error)
     }
   }
 

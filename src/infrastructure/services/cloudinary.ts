@@ -12,7 +12,7 @@ cloudinary.config({
 
 
 class Cloudinary implements cloudinaryI{
-  async uploadImage(image: any, folderName: string): Promise<string> {
+  async uploadImage(image: any, folderName: string): Promise<string> { 
       try {
        const uploadResult = await cloudinary.uploader
        .upload(
