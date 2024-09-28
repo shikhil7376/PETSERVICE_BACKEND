@@ -266,7 +266,26 @@ class userController {
       next(error)
     }
   }
+  
+  async getFollowers(req:Request,res:Response,next:NextFunction){
+    try {      
+      const {id} = req.params
+      const response = await this.userUseCase.getFollowers(id)     
+      return res.status(response.status).json(response.data) 
+    } catch (error) {
+      next(error)
+    }
+  }
 
+  async getFollowing(req:Request,res:Response,next:NextFunction){
+    try {
+      const {id} = req.params
+      const response = await this.userUseCase.getFollowing(id) 
+      return res.status(response.status).json(response.data)
+    } catch (error) {
+      next(error)
+    }
+  }
 }
 
 export default userController;

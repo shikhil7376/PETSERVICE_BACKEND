@@ -634,6 +634,45 @@ async deletePost(postId:string){
   }
 }
 
+async getFollowers(userId:string){
+  const response  = await this.UserRepository.getFollowers(userId)
+  if(response){
+    return{
+      status:200,
+      data:{
+        message:'followers fetched succesfully',
+        data:response
+      }
+    }
+  }else{
+      return {
+        status:400,
+        data:{
+          message:'failed to fetch followers'
+        }
+      }
+  }
+}
+async getFollowing(userId:string){
+  const response  = await this.UserRepository.getFollowing(userId)
+  if(response){
+    return{
+      status:200,
+      data:{
+        message:'followers fetched succesfully',
+        data:response
+      }
+    }
+  }else{
+      return {
+        status:400,
+        data:{
+          message:'failed to fetch followers'
+        }
+      }
+  }
+}
+
 }
 
 export default UserUseCase;

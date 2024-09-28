@@ -509,19 +509,24 @@ class KennelUseCase {
   }
 
   async cancelBooking(bookingid: string, cageid: string) {
-    const cancelBooking = await this.verifiedkennelRepository.cancelBooking(
+    const response = await this.verifiedkennelRepository.cancelBooking(
       bookingid,
       cageid
     );
-    if (cancelBooking) {
+    if (response) {
       return {
         status: 200,
-        message: "booking cancelled successfully",
+         data:{
+          message:"booking cancelled successfully",
+          data:response
+         }
       };
     } else {
       return {
         status: 400,
-        message: "failed to cancel booking",
+        data:{
+          message:'failed to cancel booking',
+        }
       };
     }
   }

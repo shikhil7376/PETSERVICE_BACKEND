@@ -6,9 +6,19 @@ const cageSchema:Schema<cages&Document> = new Schema({
         type:String,
         required:true
     },
-    location:{
-        type:String,
-        required:true
+    location: {
+        lat: {
+            type: Number,
+            required: true
+        },
+        lng: {
+            type: Number,
+            required: true
+        },
+        address: {
+            type: String,
+            required: true
+        }
     },
     maxcount:{
         type:Number,

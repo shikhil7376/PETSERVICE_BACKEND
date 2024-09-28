@@ -34,6 +34,8 @@ interface UserRepo{
     updatePost(postId:string,updatedPost:dogPost):Promise<void>
     getPostDetailsById(postId:string):Promise<Post|null>
     deletePost(postId:string):Promise<boolean>
+    getFollowers(userId:string):Promise<User[]|[]>
+    getFollowing(userId:string):Promise<User[]|[]>
 }
 
 

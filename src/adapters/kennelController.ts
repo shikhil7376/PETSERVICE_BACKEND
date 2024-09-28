@@ -77,13 +77,17 @@ async getProfile(req:Request,res:Response,next:NextFunction){
 }
 
 async addKennel(req:Request,res:Response,next:NextFunction){
-    try {    
-        console.log(req.body);
-        
+    try {            
        const {kennelname,location,description,phone,type,maxCount,PricePerNight,ownerId} = req.body
+       const locationObject= JSON.parse(location);
+
        const data ={
         kennelname:kennelname,
-        location:location,
+        location: {
+            lat: locationObject.lat,     
+            lng: locationObject.lng,     
+            address: locationObject.address 
+        },
         description:description,
         phone:phone,
         type:type,
@@ -91,6 +95,9 @@ async addKennel(req:Request,res:Response,next:NextFunction){
         pricepernight:PricePerNight,
         ownerId:ownerId
        }
+
+       console.log('data...',data);
+       
         const images =  req.files as Express.Multer.File[];
      const imagepath = images.map((val)=>val.path)  
      const response = await this.kennelusecase.addCage(data,imagepath)
@@ -162,6 +169,11 @@ async getOwnersCage(req:Request,res:Response,next:NextFunction){
 async editCage(req:Request,res:Response,next:NextFunction){
      try { 
         const { id, kennelname, location, description, phone, type, maxCount, PricePerNight, ownerId } = req.body;
+        
+        const locationObject= JSON.parse(location);
+
+        console.log('new req.body',req.body);
+        
         const images =  req.files as Express.Multer.File[];
         console.log('images',images);
         
@@ -173,7 +185,11 @@ async editCage(req:Request,res:Response,next:NextFunction){
         
         const updatedData = {
             kennelname: kennelname || existingCage.data.data.kennelname,
-            location: location || existingCage.data.data.location,
+            location: {
+                lat: locationObject.lat,     
+                lng: locationObject.lng,     
+                address: locationObject.address 
+            } || existingCage.data.data.location,
             description: description || existingCage.data.data.description,
             phone: phone || existingCage.data.data.phone,
             type: type || existingCage.data.data.type,
@@ -183,9 +199,7 @@ async editCage(req:Request,res:Response,next:NextFunction){
           };
           const existingImages = existingCage.data.data.image || [];
           let finalImages = existingImages;
-          const response = await this.kennelusecase.editCage(id,updatedData,imagePaths,finalImages)
-          console.log(response.message);
-          
+          const response = await this.kennelusecase.editCage(id,updatedData,imagePaths,finalImages)  
           return res.status(response.status).json(response.message)
      } catch (error) {
         next(error)
@@ -230,7 +244,7 @@ async cancelBooking(req:Request,res:Response,next:NextFunction){
     try {
        const{bookingid,cageid} = req.body
        const response = await this.kennelusecase.cancelBooking(bookingid,cageid)
-       return res.status(response.status).json(response.message)
+       return res.status(response.status).json(response.data)
     } catch (error) {
         next(error)
     }

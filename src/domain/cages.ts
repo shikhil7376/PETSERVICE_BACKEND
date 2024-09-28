@@ -4,7 +4,11 @@ import mongoose from "mongoose";
 interface cages{
     _id:string,
     kennelname:string,
-    location:string,
+    location?: {
+        lat: number;          // Latitude
+        lng: number;          // Longitude
+        address: string;      // Address
+    };
     maxcount:number,
     phone:string,
     pricepernight:number,

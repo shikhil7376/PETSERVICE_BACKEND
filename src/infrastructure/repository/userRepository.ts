@@ -484,6 +484,73 @@ class UserRepository implements UserRepo {
         throw new Error('Failed to fetch post details');
       }
    }
+
+   async getFollowers(userId: string): Promise<User[] | []> {
+    try {
+      const result = await UserModel.aggregate([
+        { $match: { _id: new mongoose.Types.ObjectId(userId) } }, 
+        {
+          $lookup: {
+            from: 'users', 
+            localField: 'followers', 
+            foreignField: '_id', 
+            as: 'followers', 
+          },
+        },
+        {
+          $project: {
+            _id: 0, 
+            followers: {
+              name: 1,
+              email: 1,
+              image: 1, 
+            },
+          },
+        },
+      ]);
+  
+      if (result.length === 0) {
+        return []; 
+      }
+      return result[0].followers as User[];
+    } catch (error) {
+      throw new Error('Failed to fetch followers');
+    }
+  }
+
+  async getFollowing(userId: string): Promise<User[] | []> {
+    try {
+      const result = await UserModel.aggregate([
+        { $match: { _id: new mongoose.Types.ObjectId(userId) } }, 
+        {
+          $lookup: {
+            from: 'users', 
+            localField: 'following', 
+            foreignField: '_id', 
+            as: 'following', 
+          },
+        },
+        {
+          $project: {
+            _id: 0, 
+            following: {
+              name: 1,
+              email: 1,
+              image: 1, 
+            },
+          },
+        },
+      ]);
+  
+      if (result.length === 0) {
+        return []; 
+      }
+  
+      return result[0].following as User[];
+    } catch (error) {
+      throw new Error('Failed to fetch following users');
+    }
+  }
 }
 
 export default UserRepository;

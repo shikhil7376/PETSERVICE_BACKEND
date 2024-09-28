@@ -52,4 +52,8 @@ route.post('/user-not-follow',(req,res,next)=>userController.userNotFollow(req,r
 route.post('/getUsers',(req,res,next)=>userController.allUsers(req,res,next))
 route.patch('/edit-post/:id',upload.array('editPost', 3),(req,res,next)=>userController.editPost(req,res,next))
 route.delete('/delete-post/:id',(req,res,next)=>userController.deletePost(req,res,next))
+route.get('/get-followers/:id',(req,res,next)=>userController.getFollowers(req,res,next))
+route.get('/get-following/:id',(req,res,next)=>userController.getFollowing(req,res,next))
+
+
 export default route

@@ -8,6 +8,7 @@ import Booking from "../../database/bookingModel";
 import { savebooking } from "../../../useCase/interface/Kennel/VerifiedKennelRepo";
 import UserModel from "../../database/userModel";
 import { format, parse, isValid, startOfDay, endOfDay } from 'date-fns';
+import { User } from "../../../domain/user";
 
 class VerifiedkennelRepository implements verifiedKennelOwnerRepo{
    async save(kennelOwner: any): Promise<VerifiedKennelOwner> {
@@ -103,7 +104,7 @@ async updateProfile(id: string, data: VerifiedKennelOwner): Promise<VerifiedKenn
 }
 
 async getbookings(id: string): Promise<booking[] | null> {     
-    const bookings = await Booking.find({userid:id}).lean()
+    const bookings = await Booking.find({userid:id}).sort({ createdAt: -1 }).lean()
     for (let booking of bookings) {
         const cage = await Cage.findById(booking.cageid).select('image').lean();
         if (cage && cage.image && cage.image.length > 0) {
@@ -114,29 +115,43 @@ async getbookings(id: string): Promise<booking[] | null> {
     return bookings
 }   
 
-async cancelBooking(bookingid: string, cageid: string): Promise<boolean> {
-    const booking = await Booking.findById({ _id: bookingid });
-    if (booking) {
-        booking.status = 'cancelled';
-        await booking.save();
+async cancelBooking(bookingid: string, cageid: string): Promise<boolean | User> {
+  const booking = await Booking.findById({ _id: bookingid });
+  if (booking) {
+    booking.status = 'cancelled';
+    await booking.save();
 
-        const cage = await Cage.findById({ _id: cageid });
-        if (cage) {
-            cage.currentBookings = cage.currentBookings.filter(booking => booking.bookingid !== bookingid);
-            await cage.save();
-        }
-
-        const user = await UserModel.findById(booking.userid);
-        if (user) {
-            user.wallet += booking.totalamount.valueOf(); 
-            await user.save();
-        }
-
-        return true;
+    const cage = await Cage.findById({ _id: cageid });
+    if (cage) {
+      cage.currentBookings = cage.currentBookings.filter(booking => booking.bookingid !== bookingid);
+      await cage.save();
     }
 
+    const user = await UserModel.findById(booking.userid);
+    if (user)
+
+      {
+        user.wallet += booking.totalamount.valueOf(); 
+        await user.save();
+        return {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          password: user.password,
+          isBlocked: user.isBlocked,
+          isAdmin: user.isAdmin,
+          isGoogle: user.isGoogle,
+          image: user.image,
+          wallet: user.wallet,
+          followers: user.followers,
+          following: user.following
+        };
+      }
+    }
     return false;
-}
+  }
+  
 
  async getAllBookingWithUserDetails(): Promise<booking[] | null> {
     try {
