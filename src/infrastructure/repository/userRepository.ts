@@ -10,7 +10,10 @@ import errorHandle from "../middleware/errorHandle";
 import mongoose, { Types } from 'mongoose';
 import { commentDetails, getComments } from "../../domain/Comment";
 import CommentModel from "../database/commentModel";
-
+import { ReportedPost, reportPost } from "../../domain/reportPost";
+import ReportModel from "../database/reportModel";
+import { nextDay } from "date-fns";
+import { Report } from "../../domain/reportPost";
  
 
 class UserRepository implements UserRepo {
@@ -94,7 +97,7 @@ class UserRepository implements UserRepo {
         if (id) {
           const posts = await DogPost.aggregate([
               {
-                  $match: { user: new mongoose.Types.ObjectId(id) }
+                  $match: { user: new mongoose.Types.ObjectId(id) , is_block: false }
               },
               {
                   $lookup: {
@@ -164,7 +167,9 @@ class UserRepository implements UserRepo {
           user:data.id,
           description:data.description,
           image:data.image,
+          is_block:false
         })
+        console.log("New Post Before Save:", newPost);
         await newPost.save()
         return true
       } catch (error) {
@@ -174,6 +179,11 @@ class UserRepository implements UserRepo {
    async getAllPost(): Promise<postdetails[]> {
        try {
             const posts = await DogPost.aggregate([
+              {
+                $match: {
+                    is_block: false
+                }
+            },
               {
                 $lookup:{
                   from:'users',
@@ -551,6 +561,44 @@ class UserRepository implements UserRepo {
       throw new Error('Failed to fetch following users');
     }
   }
+
+ async reportPost(data: reportPost): Promise<boolean> {
+   try {    
+    const {userId,postId,description} = data
+    const userObjectId = new Types.ObjectId(userId);
+    const postObjectId = new Types.ObjectId(postId);
+    const newReport = new ReportModel({
+      reporterId:userObjectId,
+      postId:postObjectId,
+      reason:description
+    })
+    const savedReport = await newReport.save()
+     if(savedReport){
+       return true
+     }else{
+      return false
+     }
+   } catch (error) {
+    throw new Error('Failed to add postReports');
+   }
+ }
+
+ async postReportStatus(postId: string, userId: string): Promise<boolean> {
+     try {
+       if(!postId && ! userId){
+         throw new Error('postid and userid is required')
+       }
+       const report = await ReportModel.findOne({postId,reporterId:userId})
+       if(report){
+         return true
+       }else{
+        return false
+       }
+     } catch (error) {
+      throw new Error('error occured while checking report status');
+     }
+ }
+
 }
 
 export default UserRepository;

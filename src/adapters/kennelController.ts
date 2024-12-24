@@ -171,12 +171,7 @@ async editCage(req:Request,res:Response,next:NextFunction){
         const { id, kennelname, location, description, phone, type, maxCount, PricePerNight, ownerId } = req.body;
         
         const locationObject= JSON.parse(location);
-
-        console.log('new req.body',req.body);
-        
-        const images =  req.files as Express.Multer.File[];
-        console.log('images',images);
-        
+        const images =  req.files as Express.Multer.File[];  
         const imagePaths = images.map((val) => val.path);
         const existingCage = await this.kennelusecase.getCageById(id)
         if(!existingCage.data?.data){
@@ -186,10 +181,10 @@ async editCage(req:Request,res:Response,next:NextFunction){
         const updatedData = {
             kennelname: kennelname || existingCage.data.data.kennelname,
             location: {
-                lat: locationObject.lat,     
-                lng: locationObject.lng,     
-                address: locationObject.address 
-            } || existingCage.data.data.location,
+                lat: locationObject.lat ?? existingCage.data.data.location?.lat,
+                lng: locationObject.lng ?? existingCage.data.data.location?.lng,
+                address: locationObject.address ?? existingCage.data.data.location?.address,
+            },
             description: description || existingCage.data.data.description,
             phone: phone || existingCage.data.data.phone,
             type: type || existingCage.data.data.type,

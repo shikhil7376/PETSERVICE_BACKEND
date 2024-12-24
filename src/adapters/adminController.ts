@@ -108,7 +108,40 @@ async blockkennelOwner(req:Request,res:Response,next:NextFunction) {
     } catch (error) {
         next(error)
     }
+ }
 
+ async getReports(req:Request,res:Response,next:NextFunction){
+    try {  
+        const page = parseInt(req.query.page as string)|| 1
+        const limit = parseInt(req.query.limit as string) || 10
+        const searchTerm = req.query.search as string || ''
+      const response = await this.AdminUseCase.getReportedPost(page,limit,searchTerm)
+      console.log('reportresp',response);
+      
+      return res.status(response.status).json(response)
+    } catch (error) {
+      next(error)
+    }
+}
+
+async blockPost(req:Request,res:Response,next:NextFunction){
+    try {  
+      const {postId} = req.body
+      const response = await this.AdminUseCase.blockPost(postId)
+      return res.status(response.status).json(response.data)
+    } catch (error) {
+     next(error)
+    }
+ }
+
+ async unblockPost(req:Request,res:Response,next:NextFunction){
+    try {
+        const {postId} = req.body
+        const response = await this.AdminUseCase.unblockPost(postId)  
+         return res.status(response.status).json(response.data)
+    } catch (error) {
+        next(error)
+    }
  }
 
 }

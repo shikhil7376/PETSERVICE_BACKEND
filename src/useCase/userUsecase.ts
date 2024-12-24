@@ -8,6 +8,7 @@ import { User } from "../domain/user";
 import { UserDetails } from "../domain/user";
 import { postdetails } from "../domain/dogPost";
 import { commentDetails } from "../domain/Comment";
+import { reportPost } from "../domain/reportPost";
 
 class UserUseCase {
   private UserRepository;
@@ -337,7 +338,7 @@ class UserUseCase {
 
   async getProfile(id: string) {
     const profileData = await this.UserRepository.getProfile(id);
-    const postData = await this.UserRepository.getUserPost(id)        
+    const postData = await this.UserRepository.getUserPost(id)         
     let data = {
       _id: profileData?._id,
       name: profileData?.name,
@@ -348,6 +349,7 @@ class UserUseCase {
       wallet:profileData?.wallet,
       followers:profileData?.followers.length,
       following:profileData?.following.length,
+      followerss:profileData?.followers,
       posts:postData
  
     };
@@ -443,7 +445,9 @@ class UserUseCase {
      }
   }
   async getAllPosts(){
-    const response = await this.UserRepository.getAllPost()            
+    const response = await this.UserRepository.getAllPost()    
+    console.log('response',response);
+            
     if(response){
       return{
         status:200,
@@ -483,8 +487,6 @@ class UserUseCase {
   }
 
   async commentPost(data:commentDetails){
-    
-    
    const response = await this.UserRepository.commentPost(data)
    if(response){
     return {
@@ -670,6 +672,46 @@ async getFollowing(userId:string){
           message:'failed to fetch followers'
         }
       }
+  }
+}
+
+async reportPost(data:reportPost){
+   const response = await this.UserRepository.reportPost(data)
+   if(response){
+      return {
+        status:200,
+        data:{
+          message:'report post succesfully'
+        }
+      }
+   }else{
+    return{
+      status:400,
+      data:{
+        message:'failed to report post'
+      }
+    }
+   }
+}
+
+async postReportStatus(postId:string,userId:string){
+  const response = await this.UserRepository.postReportStatus(postId,userId)
+  if(response){
+    return{
+      status:200,
+      data:{
+        message:'user reported',
+        data:response
+      }
+    }
+  }else{
+    return {
+      status:200,
+      data:{
+        message:'user not reported',
+        data:response
+      }
+    }
   }
 }
 

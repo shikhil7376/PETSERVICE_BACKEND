@@ -1,5 +1,7 @@
 import approve from "../../domain/approve"
 import { AdminDashboardData } from "../../domain/Booking"
+import { reportPost,ReportedPost } from "../../domain/reportPost";
+
 
 
 interface adminRepo{
@@ -13,6 +15,9 @@ interface adminRepo{
     blockKennelOwner(reqId:string):Promise<boolean>
     UnblockKennelOwner(reqId:string):Promise<boolean>
     getAdminDashboardData():Promise<AdminDashboardData>
+    getReportedPost(page:number,limit:number,searchTerm:string):Promise<{ reportedPosts: ReportedPost[]; total: number }>
+    blockPost(postId:string):Promise<boolean>
+    unblockPost(postId:string):Promise<boolean>
 }
 
 

@@ -286,6 +286,29 @@ class userController {
       next(error)
     }
   }
+
+  async reportPost(req:Request,res:Response,next:NextFunction){
+    try {
+    const { postId,  userId,description} = req.body
+    const data = {postId,userId,description}
+    const response = await this.userUseCase.reportPost(data)
+    return res.status(response.status).json(response.data)
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  async checkReportStatus(req:Request,res:Response,next:NextFunction){
+    try {
+      console.log('hereee...');
+      const {postId,userId} = req.params
+      const response = await this.userUseCase.postReportStatus(postId,userId)
+      return res.status(response.status).json(response.data)
+    } catch (error) {
+      next(error)
+    }
+  }
+  
 }
 
 export default userController;

@@ -7,6 +7,7 @@ export interface dogPost{
     likes:mongoose.Types.ObjectId[],
     comments:string[],
     createdAt:Date,
+    is_block?:boolean,
 }
 
 export type postdetails ={

@@ -9,6 +9,9 @@ import {
   kennelSearchAndPagination,
 } from "../../utils/reuse";
 import { AdminDashboardData } from "../../domain/Booking";
+import { ReportedPost, reportPost } from "../../domain/reportPost";
+import ReportModel from "../database/reportModel";
+import DogPost from "../database/dogPostModel";
 
 class adminRepository implements adminRepo {
   async getUsers(
@@ -166,6 +169,123 @@ class adminRepository implements adminRepo {
         dailyProfit,
         monthlyProfit
     };
+  }
+
+  async getReportedPost(
+    page: number,
+    limit: number,
+    searchTerm: string
+  ): Promise<{ reportedPosts: ReportedPost[]; total: number }> {
+    const skip = (page - 1) * limit;
+  
+    // Perform the aggregation with search and pagination
+    const result = await ReportModel.aggregate([
+      // Step 1: Lookup for post details
+      {
+        $lookup: {
+          from: "dogposts",
+          localField: "postId",
+          foreignField: "_id",
+          as: "postDetails",
+        },
+      },
+      { $unwind: "$postDetails" },
+  
+      // Step 2: Lookup for reporter details
+      {
+        $lookup: {
+          from: "users",
+          localField: "reporterId",
+          foreignField: "_id",
+          as: "reporterDetails",
+        },
+      },
+      { $unwind: "$reporterDetails" },
+  
+      // Step 3: Lookup for post user details
+      {
+        $lookup: {
+          from: "users",
+          localField: "postDetails.user",
+          foreignField: "_id",
+          as: "postUserDetails",
+        },
+      },
+      { $unwind: "$postUserDetails" },
+  
+      // Step 4: Filter by search term (e.g., filtering on reporter or post user name)
+      {
+        $match: {
+          $or: [
+            { "reporterDetails.name": { $regex: searchTerm, $options: "i" } },
+            { "postUserDetails.name": { $regex: searchTerm, $options: "i" } },
+            { reason: { $regex: searchTerm, $options: "i" } },
+          ],
+        },
+      },
+  
+      // Step 5: Project required fields
+      {
+        $project: {
+          postId: 1,
+          "postDetails.image": 1,
+          "postUserDetails.name": 1,
+          "reporterDetails.name": 1,
+          "postDetails.is_block": 1,
+          reason: 1,
+          status: 1,
+          createdAt: 1,
+        },
+      },
+  
+      // Step 6: Pagination with facet
+      {
+        $facet: {
+          reportedPosts: [{ $skip: skip }, { $limit: limit }],
+          totalCount: [{ $count: "count" }],
+        },
+      },
+    ]);
+  
+    // Extract results and total count
+    const reportedPosts = result[0]?.reportedPosts || [];
+    const total = result[0]?.totalCount[0]?.count || 0;
+  
+    return { reportedPosts, total };
+  }
+
+  async blockPost(postId: string): Promise<boolean> {
+    try {
+      const post = await DogPost.findById(postId);
+     if(!post){
+      throw new Error("post not found")
+     }
+     post.is_block=true
+     await post.save();
+     await ReportModel.updateMany(
+      { postId: postId },
+      {
+          $set: { status: "Resolved", updatedAt: new Date() }
+      }
+  );
+  return true;
+     } catch (error) {
+      throw new Error('error occured while blocking post');
+     }
+  }
+
+  async unblockPost(postId: string): Promise<boolean> {
+       try {
+        const post = await DogPost.findById(postId)
+        if(!post){
+          throw new Error("post not found")
+        }
+        post.is_block = false
+        await post.save()
+        return true
+       } catch (error) {
+        throw new Error('error occured while blocking post');
+       }
   }
 }
 

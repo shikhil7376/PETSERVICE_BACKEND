@@ -27,6 +27,10 @@ const dogPostSchema:Schema<dogPost&Document> = new mongoose.Schema({
         createdAt: {
             type: Date,
             default: Date.now
+        },
+        is_block:{
+            type:Boolean,
+            default:false
         }
 })
 

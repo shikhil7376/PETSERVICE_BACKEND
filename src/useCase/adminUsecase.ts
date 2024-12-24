@@ -224,6 +224,65 @@ class adminUseCase{
             }
         }
     }
+
+    async getReportedPost(page:number,limit:number,searchTerm:string){
+        const response = await this.AdminRepo.getReportedPost(page,limit,searchTerm)
+        if(response){
+            return{
+                status:200,
+                data:response.reportedPosts,
+                total:response.total,
+                page,
+                limit,
+                message:'fetch users succesfully'
+            }
+        }else{
+           return {
+            status:400,
+            data:{
+              message:'failed to fetch reported post'
+            }
+           }
+        }
+      }
+
+      async blockPost(postId:string){
+        const response = await this.AdminRepo.blockPost(postId)
+        if(response){
+          return {
+           status:200,
+           data:{
+             message:"block post successfully"
+           }
+          }
+        }else{
+           return {
+             status:400,
+             data:{
+               message:"failed to block post"
+             }
+           }
+        }
+     }
+
+     async unblockPost(postId:string){
+        const response = await this.AdminRepo.unblockPost(postId)
+        if(response){
+            return{
+                status:200,
+                data:{
+                    message:"unblock post succesfully"
+                }
+            }
+        }else{
+            return {
+                status:400,
+                data:{
+                    message:"failed to block post"
+                }
+            }
+        }
+     }
 }
 
 export default adminUseCase

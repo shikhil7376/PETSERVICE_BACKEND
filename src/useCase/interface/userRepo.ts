@@ -6,6 +6,7 @@ import { commentDetails } from "../../domain/Comment";
 import { getComments } from "../../domain/Comment";
 import { UserNotFollow } from "../../domain/user";
 import { Post } from "../../domain/user";
+import { reportPost } from "../../domain/reportPost";
 
 
 interface UserRepo{
@@ -35,7 +36,9 @@ interface UserRepo{
     getPostDetailsById(postId:string):Promise<Post|null>
     deletePost(postId:string):Promise<boolean>
     getFollowers(userId:string):Promise<User[]|[]>
-    getFollowing(userId:string):Promise<User[]|[]>
+    getFollowing(userId:string):Promise<User[]|[]> 
+    reportPost(data:reportPost):Promise<boolean>
+    postReportStatus(postId:string,userId:string):Promise<boolean>
 }
 
 
