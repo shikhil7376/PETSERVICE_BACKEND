@@ -250,8 +250,6 @@ async cancelBooking(req:Request,res:Response,next:NextFunction){
 async handleWebhook(req:Request,res:Response,next:NextFunction){
    try {  
 
-    console.log('weboooo');
-    
     const sig: string | string[] | undefined = req.headers['stripe-signature'];
     if (!sig || Array.isArray(sig)) {
         return res.status(400).send("Invalid Stripe signature");

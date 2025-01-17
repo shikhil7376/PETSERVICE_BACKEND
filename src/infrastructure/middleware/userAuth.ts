@@ -11,7 +11,6 @@ export const userAuth = async(req:Request,res:Response,next:NextFunction)=>{
       const token = authHeader.split(" ")[1];
  
     try {
-
         const decodedToken = jwt.verify(token,process.env.JWT_SECRET_KEY as string) as JwtPayload
         if (decodedToken.role !== Role.user) {
             return res.status(400).json({ message: "Unauthorized access" });

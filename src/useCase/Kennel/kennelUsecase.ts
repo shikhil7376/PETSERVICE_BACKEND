@@ -531,14 +531,12 @@ class KennelUseCase {
     }
   }
 
-  async handleEvent(sig: string, body: any) {
-    console.log('here.... webhook');
-    
+  async handleEvent(sig: string, body: any) {    
     const stripeKey = process.env.STRIPE_KEY;
     if (!stripeKey) {
       throw new Error("Stripe key is not defined");
     }
-
+     
     const stripe = new Stripe(stripeKey);
     let data;
     let eventType;
@@ -548,6 +546,7 @@ class KennelUseCase {
         event = stripe.webhooks.constructEvent(body, sig, this.endpointSecret);
         data = event.data.object;
         eventType = event.type;
+        
       } catch (error) {
         console.error("Webhook error:");
         return; // Exit early if webhook event construction fails
